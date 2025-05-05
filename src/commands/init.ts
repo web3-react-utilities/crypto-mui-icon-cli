@@ -16,7 +16,7 @@ export async function initCommand(): Promise<void> {
 
         console.log(chalk.green("\n✅ Project structure initialized successfully!"));
         console.log(`\nTo add specific icons, run:`);
-        console.log(chalk.cyan(`  npx crypto-icon-cli add --token BTC ETH`));
+        console.log(chalk.cyan(`  npx crypto-mui-icon-cli add --token BTC ETH`));
     } catch (error) {
         console.error(chalk.red("❌ Error initializing project:"), error);
         process.exit(1);
