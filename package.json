@@ -27,12 +27,12 @@
     "license": "ISC",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/yourusername/crypto-mui-icon-cli.git"
+        "url": "git+https://github.com/web3-react-utilities/crypto-mui-icon-cli.git"
     },
     "bugs": {
-        "url": "https://github.com/yourusername/crypto-mui-icon-cli/issues"
+        "url": "https://github.com/web3-react-utilities/crypto-mui-icon-cli/issues"
     },
-    "homepage": "https://github.com/yourusername/crypto-mui-icon-cli#readme",
+    "homepage": "https://github.com/web3-react-utilities/crypto-mui-icon-cli#readme",
     "dependencies": {
         "chalk": "^4.1.2",
         "commander": "^11.1.0",
