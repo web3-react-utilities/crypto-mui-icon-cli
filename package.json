@@ -1,0 +1,59 @@
+{
+    "name": "crypto-mui-icon-cli",
+    "version": "1.0.0",
+    "description": "CLI tool for adding crypto token icons with MUI support to your project",
+    "main": "dist/index.js",
+    "bin": {
+        "crypto-mui-icon-cli": "./dist/index.js"
+    },
+    "scripts": {
+        "build": "tsc",
+        "postbuild": "node scripts/copy-templates.js",
+        "dev": "ts-node src/index.ts",
+        "start": "node dist/index.js",
+        "prepare": "npm run build",
+        "prepublishOnly": "npm run build"
+    },
+    "keywords": [
+        "crypto",
+        "token",
+        "icon",
+        "cli",
+        "mui",
+        "react",
+        "svg"
+    ],
+    "author": "Your Name",
+    "license": "ISC",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/yourusername/crypto-mui-icon-cli.git"
+    },
+    "bugs": {
+        "url": "https://github.com/yourusername/crypto-mui-icon-cli/issues"
+    },
+    "homepage": "https://github.com/yourusername/crypto-mui-icon-cli#readme",
+    "dependencies": {
+        "chalk": "^4.1.2",
+        "commander": "^11.1.0",
+        "execa": "^5.1.1",
+        "fs-extra": "^11.2.0",
+        "glob": "^10.3.10",
+        "inquirer": "^8.2.6",
+        "path": "^0.12.7"
+    },
+    "devDependencies": {
+        "@types/fs-extra": "^11.0.4",
+        "@types/inquirer": "^8.2.10",
+        "@types/node": "^20.11.24",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.3.3"
+    },
+    "files": [
+        "dist",
+        "templates"
+    ],
+    "engines": {
+        "node": ">=14.0.0"
+    }
+}
