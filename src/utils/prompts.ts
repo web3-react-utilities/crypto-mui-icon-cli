@@ -65,3 +65,68 @@ export async function promptTargetDirectory(message: string = "Select target dir
 
     return targetDir;
 }
+
+/**
+ * Prompt user to select what type of icons to remove
+ */
+export async function promptRemoveType(): Promise<string> {
+    const { removeType } = await inquirer.prompt({
+        type: "list",
+        name: "removeType",
+        message: "What do you want to remove?",
+        choices: ["Tokens", "Wallets", "Systems", "Cancel"],
+    });
+
+    return removeType;
+}
+
+/**
+ * Prompt user to select tokens to remove
+ */
+export async function promptTokensToRemove(): Promise<string[]> {
+    // Get enum keys and filter out numeric keys
+    const tokenChoices = Object.keys(TokenName).filter((key) => isNaN(Number(key)));
+
+    const { selectedTokens } = await inquirer.prompt({
+        type: "checkbox",
+        name: "selectedTokens",
+        message: "Select tokens to remove:",
+        choices: tokenChoices,
+    });
+
+    return selectedTokens;
+}
+
+/**
+ * Prompt user to select wallets to remove
+ */
+export async function promptWalletsToRemove(): Promise<string[]> {
+    // Get enum keys and filter out numeric keys
+    const walletChoices = Object.keys(WalletName).filter((key) => isNaN(Number(key)));
+
+    const { selectedWallets } = await inquirer.prompt({
+        type: "checkbox",
+        name: "selectedWallets",
+        message: "Select wallets to remove:",
+        choices: walletChoices,
+    });
+
+    return selectedWallets;
+}
+
+/**
+ * Prompt user to select systems to remove
+ */
+export async function promptSystemsToRemove(): Promise<string[]> {
+    // Get enum keys and filter out numeric keys
+    const systemChoices = Object.keys(SystemName).filter((key) => isNaN(Number(key)));
+
+    const { selectedSystems } = await inquirer.prompt({
+        type: "checkbox",
+        name: "selectedSystems",
+        message: "Select systems to remove:",
+        choices: systemChoices,
+    });
+
+    return selectedSystems;
+}

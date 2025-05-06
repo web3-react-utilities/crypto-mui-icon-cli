@@ -4,6 +4,7 @@ import { Command } from "commander";
 import chalk from "chalk";
 import { addCommand } from "./commands/add";
 import { initCommand } from "./commands/init";
+import { createRemoveCommand } from "./commands/remove";
 
 const program = new Command();
 
@@ -21,6 +22,9 @@ program
     .option("-s, --system <systems...>", "System icons to add")
     .option("-d, --dir <directory>", "Target directory for icons", "./src/libs/crypto-icons")
     .action(addCommand);
+
+// Register remove command
+program.addCommand(createRemoveCommand());
 
 // Display help if no arguments provided
 if (process.argv.length === 2) {

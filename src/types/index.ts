@@ -5,6 +5,13 @@ export interface AddCommandOptions {
     dir?: string;
 }
 
+export interface RemoveCommandOptions {
+    token?: string[];
+    wallet?: string[];
+    system?: string[];
+    dir?: string;
+}
+
 export interface ExportOptions {
     tokens: string[];
     wallets: string[];

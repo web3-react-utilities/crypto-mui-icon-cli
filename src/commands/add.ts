@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import path from "path";
 import fs from "fs-extra";
+import { Command } from "commander";
 import { AddCommandOptions } from "../types";
 import { promptTokens, promptWallets, promptTargetDirectory } from "../utils/prompts";
 import { copyTokenTemplates, copyWalletTemplates, copySystemTemplates, updateExports } from "../utils/fileHelpers";
@@ -57,3 +58,24 @@ export async function addCommand(options: AddCommandOptions): Promise<void> {
         process.exit(1);
     }
 }
+
+export const createAddCommand = (): Command => {
+    const command = new Command("add")
+        .description("Add specific token, wallet, or system icons to your project")
+        .option("-t, --token <tokens...>", "Token icons to add (e.g. BTC ETH SOL)")
+        .option("-w, --wallet <wallets...>", "Wallet icons to add (e.g. MetaMask WalletConnect)")
+        .option("-s, --system <systems...>", "System icons to add")
+        .option("-d, --dir <directory>", "Target directory for icons", "./src/libs/crypto-icons")
+        .action(async (options) => {
+            const cmdOptions: AddCommandOptions = {
+                token: options.token || [],
+                wallet: options.wallet || [],
+                system: options.system || [],
+                dir: options.dir ? path.resolve(options.dir) : process.cwd(),
+            };
+
+            await addCommand(cmdOptions);
+        });
+
+    return command;
+};
