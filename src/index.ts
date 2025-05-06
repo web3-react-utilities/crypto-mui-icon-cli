@@ -4,7 +4,7 @@ import { Command } from "commander";
 import chalk from "chalk";
 import { addCommand } from "./commands/add";
 import { initCommand } from "./commands/init";
-import { createRemoveCommand } from "./commands/remove";
+import { removeCommand } from "./commands/remove";
 
 const program = new Command();
 
@@ -24,7 +24,14 @@ program
     .action(addCommand);
 
 // Register remove command
-program.addCommand(createRemoveCommand());
+program
+    .command("remove")
+    .description("Remove tokens, wallets, or systems from the crypto-icons")
+    .option("-t, --token [tokens...]", "Token names to remove")
+    .option("-w, --wallet [wallets...]", "Wallet names to remove")
+    .option("-s, --system [systems...]", "System names to remove")
+    .option("-d, --dir <directory>", "Target directory (defaults to current directory)")
+    .action(removeCommand);
 
 // Display help if no arguments provided
 if (process.argv.length === 2) {

@@ -56,6 +56,35 @@ npx crypto-mui-icon-cli add --token BTC --dir ./src/assets/crypto
 
 If no options are specified, the tool will display an interactive menu for you to choose from.
 
+### Removing Icons
+
+```bash
+# Remove one or more token icons
+npx crypto-mui-icon-cli remove --token BTC ETH
+
+# Remove one or more wallet icons
+npx crypto-mui-icon-cli remove --wallet MetaMask WalletConnect
+
+# Remove system icons
+npx crypto-mui-icon-cli remove --system Blockchain NFT
+
+# Remove multiple types of icons at once
+npx crypto-mui-icon-cli remove --token BTC --wallet MetaMask
+
+# Specify the target directory containing icons to remove
+npx crypto-mui-icon-cli remove --token BTC --dir ./src/libs/crypto-icons
+```
+
+If no options are specified, the tool will display an interactive menu for you to choose which icons to remove.
+
+When you remove an icon, the following updates are made:
+
+1. The icon component file is deleted
+2. The export statement is removed from the respective index.ts file
+3. The entry is removed from the corresponding enum (TokenName, WalletName, or SystemName)
+4. The image path constant is removed from constants/imagePaths.ts
+5. For tokens, the mapping is also removed from iconMappings.ts
+
 ## Generated Structure
 
 When you add a token icon, for example BTC, the following files will be created or updated:
