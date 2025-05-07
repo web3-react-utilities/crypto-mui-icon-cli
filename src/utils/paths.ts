@@ -288,97 +288,80 @@ export async function updateTokenMapping(filePath: string, token: string): Promi
         // Read current content
         let content = await fs.readFile(filePath, "utf-8");
 
-        // Handle import statements
-        const importRegex = /import\s+{[^}]*}\s+from\s+['"][^'"]+['"]/g;
-        const importSection = content.match(/(import\s+{[^}]*}\s+from\s+['"][^'"]+['"][\s\n]*)+/);
+        // Tạo một RegExp để phù hợp với các import statements hiện có
+        const importRegex = /import\s+\{\s*Icon(\w+)\s*\}\s+from\s+['"]\.\.\/tokens\/Icon\w+['"][;\s]*\n?/g;
 
-        // Extract all imports
-        const imports = [];
-        if (importSection) {
-            const importSectionText = importSection[0];
-            const importLines = importSectionText.match(importRegex) || [];
-
-            // Get existing imports
-            for (const importLine of importLines) {
-                imports.push(importLine);
-            }
+        // Lấy tất cả các token đã import
+        const existingImports = new Set<string>();
+        let importMatch;
+        while ((importMatch = importRegex.exec(content)) !== null) {
+            existingImports.add(importMatch[1]);
         }
 
-        // Add new import if it doesn't exist
-        const tokenImport = `import { Icon${token} } from '../tokens/Icon${token}'`;
-        if (!imports.some((imp) => imp.includes(`Icon${token}`))) {
-            imports.push(tokenImport);
+        // Thêm token mới nếu chưa tồn tại
+        if (!existingImports.has(token)) {
+            existingImports.add(token);
         }
 
-        // Sort imports alphabetically
-        imports.sort((a, b) => {
-            const tokenA = a.match(/Icon(\w+)/)?.[1] || "";
-            const tokenB = b.match(/Icon(\w+)/)?.[1] || "";
-            return tokenA.localeCompare(tokenB);
-        });
+        // Sắp xếp tokens theo thứ tự alphabet
+        const sortedTokens = Array.from(existingImports).sort();
 
-        // Create new import section
-        const newImportSection = imports.join(";\n") + ";\n\n";
+        // Tạo phần import mới
+        const newImportSection = `import { TokenName, SvgComponent } from '../types';
+${sortedTokens.map((t) => `import { Icon${t} } from '../tokens/Icon${t}';`).join("\n")}
 
-        // Handle the mapNameToIcon section
-        const mapRegex = /export\s+const\s+mapNameToIcon[^{]+{([^}]*)}/s;
-        const mapMatch = content.match(mapRegex);
+`;
 
-        if (mapMatch) {
-            // Get existing entries
-            const mapContent = mapMatch[1];
-            const entryRegex = /\[\s*TokenName\.(\w+)\s*\]\s*:\s*Icon\w+\s*,?/g;
-            const entries: Record<string, string> = {};
-            let entryMatch;
+        // Định vị vị trí nơi phần import nên kết thúc
+        const importEndPos = content.indexOf("/**");
 
-            while ((entryMatch = entryRegex.exec(mapContent)) !== null) {
-                const tokenName = entryMatch[1];
-                entries[tokenName] = tokenName;
-            }
+        if (importEndPos > 0) {
+            // Lấy phần sau import (comment và map object)
+            const afterImport = content.slice(importEndPos);
 
-            // Add new entry if not exists
-            if (!entries[token]) {
-                entries[token] = token;
-            }
+            // Extract the mapNameToIcon object
+            const mapRegex = /export\s+const\s+mapNameToIcon[^{]+{([^}]*)}/s;
+            const mapMatch = afterImport.match(mapRegex);
 
-            // Sort entries alphabetically
-            const sortedTokens = Object.keys(entries).sort();
+            if (mapMatch) {
+                // Lấy các entries hiện có
+                const mapContent = mapMatch[1];
 
-            // Rebuild the map
-            let newMapContent = "export const mapNameToIcon: Record<TokenName, SvgComponent> = {\n";
+                // Tạo object mới để chứa tất cả các token mappings
+                const tokenMapEntries: Record<string, string> = {};
 
-            if (sortedTokens.length > 0) {
+                // Thêm token hiện có vào object
+                for (const t of sortedTokens) {
+                    tokenMapEntries[t] = `    [TokenName.${t}]: Icon${t},`;
+                }
+
+                // Xây dựng lại map content
+                let newMapContent = "export const mapNameToIcon: Record<TokenName, SvgComponent> = {\n";
+
                 if (mapContent.includes("// This will be populated automatically")) {
                     newMapContent += "    // This will be populated automatically as you add tokens\n";
                 }
 
+                // Thêm các entries được sắp xếp
                 for (const t of sortedTokens) {
-                    newMapContent += `    [TokenName.${t}]: Icon${t},\n`;
+                    newMapContent += `${tokenMapEntries[t]}\n`;
                 }
+
+                newMapContent += "};";
+
+                // Thay thế the map trong afterImport
+                const newAfterImport = afterImport.replace(mapRegex, newMapContent);
+
+                // Cập nhật nội dung tệp
+                content = newImportSection + newAfterImport;
+
+                await fs.writeFile(filePath, content);
+                console.log(chalk.blue(`✓ Updated token mapping for: ${token}`));
             } else {
-                newMapContent += "    // This will be populated automatically as you add tokens\n";
+                console.error(chalk.red(`❌ Could not find mapNameToIcon in ${filePath}`));
             }
-
-            newMapContent += "};";
-
-            // Replace the import section and map content
-            let newContent = content;
-
-            // Replace import section if it exists, otherwise add at the beginning
-            if (importSection) {
-                newContent = newContent.replace(importSection[0], newImportSection);
-            } else {
-                newContent = newImportSection + newContent;
-            }
-
-            // Replace map section
-            newContent = newContent.replace(mapRegex, newMapContent);
-
-            // Write updated content
-            await fs.writeFile(filePath, newContent);
-            console.log(chalk.blue(`✓ Updated token mapping for: ${token}`));
         } else {
-            console.error(chalk.red(`❌ Could not find mapNameToIcon in ${filePath}`));
+            console.error(chalk.red(`❌ Could not find comment section in ${filePath}`));
         }
     } catch (error) {
         console.error(chalk.red(`❌ Error updating token mapping for: ${token}`), error);
