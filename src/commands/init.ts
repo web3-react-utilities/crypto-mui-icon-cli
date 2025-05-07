@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import { promptTargetDirectory } from "../utils/prompts";
 import { createBaseStructure } from "../utils/fileHelpers";
+import { saveConfig } from "../utils/config";
 
 export async function initCommand(): Promise<void> {
     try {
@@ -11,6 +12,9 @@ export async function initCommand(): Promise<void> {
 
         // Create the base structure
         await createBaseStructure(targetDir);
+
+        // Save the configuration with the target directory
+        await saveConfig({ targetDirectory: targetDir });
 
         console.log(chalk.green("\n✅ Project structure initialized successfully!"));
         console.log(chalk.green("\nThank you for using crypto-mui-icon-cli! 🚀\n"));

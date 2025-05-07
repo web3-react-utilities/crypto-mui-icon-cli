@@ -114,7 +114,7 @@ When you remove an icon, the following updates are made:
 
 ### Configuration
 
-The CLI tool uses a project-specific configuration through a `.crypto-mui-icon-cli.json` file stored in your project's root directory (same folder as your package.json). This keeps project configuration together with the project itself.
+The CLI tool uses a project-specific configuration through a `crypto-mui-icon-cli.json` file stored in your project's root directory (same folder as your package.json). This keeps project configuration together with the project itself.
 
 #### Default Configuration
 
@@ -135,7 +135,7 @@ npx crypto-mui-icon-cli@latest add --token BTC --dir ./my-custom-path
 
 #### Manual Configuration
 
-You can also manually create or edit the configuration file in your project root:
+You can also manually create or edit the configuration file `crypto-mui-icon-cli.json` in your project root:
 
 ```json
 {

@@ -1,14 +1,14 @@
 import fs from "fs-extra";
 import path from "path";
 import chalk from "chalk";
-import { findUpSync } from "find-up";
+import findUp from "find-up";
 
 interface CliConfig {
     targetDirectory: string;
     // Add other configuration options as needed
 }
 
-const CONFIG_FILE_NAME = ".crypto-mui-icon-cli.json";
+const CONFIG_FILE_NAME = "crypto-mui-icon-cli.json";
 
 /**
  * Find the root directory of the project by looking for package.json
@@ -17,7 +17,7 @@ const CONFIG_FILE_NAME = ".crypto-mui-icon-cli.json";
 function findProjectRoot(): string {
     try {
         // Look for package.json up the directory tree
-        const packageJsonPath = findUpSync("package.json");
+        const packageJsonPath = findUp.sync("package.json");
         if (packageJsonPath) {
             return path.dirname(packageJsonPath);
         }
