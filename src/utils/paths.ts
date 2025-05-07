@@ -350,12 +350,17 @@ ${sortedTokens.map((t) => `import { Icon${t} } from '../tokens/Icon${t}';`).join
                 newMapContent += "};";
 
                 // Thay thế the map trong afterImport
-                const newAfterImport = afterImport.replace(mapRegex, newMapContent);
+                // Loại bỏ hoàn toàn dấu ;;;; ở cuối file
+                const cleanAfterImport = afterImport.replace(/};+$/, "};");
+                const newAfterImport = cleanAfterImport.replace(mapRegex, newMapContent);
 
-                // Cập nhật nội dung tệp
-                content = newImportSection + newAfterImport;
+                // Tạo nội dung file hoàn chỉnh
+                const finalContent = newImportSection + newAfterImport;
 
-                await fs.writeFile(filePath, content);
+                // Loại bỏ bất kỳ dấu ;;;; nào ở cuối file
+                const cleanFinalContent = finalContent.replace(/};+$/, "};");
+
+                await fs.writeFile(filePath, cleanFinalContent);
                 console.log(chalk.blue(`✓ Updated token mapping for: ${token}`));
             } else {
                 console.error(chalk.red(`❌ Could not find mapNameToIcon in ${filePath}`));

@@ -409,56 +409,77 @@ export async function removeTokenMapping(filePath: string, token: string): Promi
     try {
         let content = await fs.readFile(filePath, "utf-8");
 
-        // First handle the imports section
-        // Extract all imports
-        const importsSectionRegex = /(import .*from '.*';(\n)?)+/;
-        const importsSectionMatch = content.match(importsSectionRegex);
-        if (importsSectionMatch) {
-            const importsSection = importsSectionMatch[0];
-            // Find and remove the specific import for this token
-            const importRegex = new RegExp(`import \\{ Icon${token} \\} from '\\.\\./tokens/Icon${token}';\\n?`, "g");
-            const updatedImportsSection = importsSection.replace(importRegex, "");
-            content = content.replace(importsSection, updatedImportsSection);
-        }
+        // Tạo một RegExp để phù hợp với các import statements hiện có
+        const importRegex = /import\s+\{\s*Icon(\w+)\s*\}\s+from\s+['"]\.\.\/tokens\/Icon\w+['"][;\s]*\n?/g;
 
-        // Now handle the mapping entries
-        // Extract the entire mapping object
-        const mapRegex = /export const mapNameToIcon[^{]+{([^}]*)}/s;
-        const mapMatch = content.match(mapRegex);
-
-        if (mapMatch) {
-            // Get the existing mapping entries
-            const mapContent = mapMatch[1];
-            // Split by lines and filter out the entry being removed
-            const entries = mapContent
-                .split("\n")
-                .map((line) => line.trim())
-                .filter((line) => line.length > 0 && !line.includes(`[TokenName.${token}]`));
-
-            // Sort entries alphabetically by token name
-            entries.sort((a, b) => {
-                const tokenA = a.match(/\[TokenName\.(\w+)\]/)?.[1] || "";
-                const tokenB = b.match(/\[TokenName\.(\w+)\]/)?.[1] || "";
-                return tokenA.localeCompare(tokenB);
-            });
-
-            // Rebuild the map with sorted entries
-            let newMapContent = "export const mapNameToIcon: Record<TokenName, SvgComponent> = {\n";
-            if (entries.length > 0) {
-                entries.forEach((entry) => {
-                    newMapContent += `${entry}\n`;
-                });
-            } else {
-                newMapContent += "  // This will be populated automatically as you add tokens\n";
+        // Lấy tất cả các token đã import
+        const existingImports = new Set<string>();
+        let importMatch;
+        while ((importMatch = importRegex.exec(content)) !== null) {
+            const importedToken = importMatch[1];
+            // Chỉ giữ lại các import không phải token hiện tại
+            if (importedToken !== token) {
+                existingImports.add(importedToken);
             }
-            newMapContent += "};";
-
-            // Replace the map in the content
-            content = content.replace(mapRegex, newMapContent);
         }
 
-        await fs.writeFile(filePath, content);
-        console.log(chalk.green(`✓ Removed token mapping for: ${token}`));
+        // Sắp xếp tokens theo thứ tự alphabet
+        const sortedTokens = Array.from(existingImports).sort();
+
+        // Tạo phần import mới
+        const newImportSection = `import { TokenName, SvgComponent } from '../types';
+${sortedTokens.length > 0 ? sortedTokens.map((t) => `import { Icon${t} } from '../tokens/Icon${t}';`).join("\n") : ""}
+
+`;
+
+        // Định vị vị trí nơi phần import nên kết thúc
+        const importEndPos = content.indexOf("/**");
+
+        if (importEndPos > 0) {
+            // Lấy phần sau import (comment và map object)
+            const afterImport = content.slice(importEndPos);
+
+            // Extract the mapNameToIcon object
+            const mapRegex = /export\s+const\s+mapNameToIcon[^{]+{([^}]*)}/s;
+            const mapMatch = afterImport.match(mapRegex);
+
+            if (mapMatch) {
+                // Xây dựng lại map content với các token đã lọc
+                let newMapContent = "export const mapNameToIcon: Record<TokenName, SvgComponent> = {";
+
+                if (sortedTokens.length > 0) {
+                    newMapContent += "\n    // This will be populated automatically as you add tokens";
+
+                    // Thêm các entries đã được lọc và sắp xếp
+                    for (const t of sortedTokens) {
+                        newMapContent += `\n    [TokenName.${t}]: Icon${t},`;
+                    }
+
+                    newMapContent += "\n";
+                } else {
+                    newMapContent += "\n    // This will be populated automatically as you add tokens\n";
+                }
+
+                newMapContent += "};";
+
+                // Loại bỏ hoàn toàn dấu ;;;; ở cuối file
+                const cleanAfterImport = afterImport.replace(/};+$/, "};");
+                const newAfterImport = cleanAfterImport.replace(mapRegex, newMapContent);
+
+                // Tạo nội dung file hoàn chỉnh
+                const finalContent = newImportSection + newAfterImport;
+
+                // Loại bỏ bất kỳ dấu ;;;; nào ở cuối file
+                const cleanFinalContent = finalContent.replace(/};+$/, "};");
+
+                await fs.writeFile(filePath, cleanFinalContent);
+                console.log(chalk.green(`✓ Removed token mapping for: ${token}`));
+            } else {
+                console.error(chalk.red(`❌ Could not find mapNameToIcon in ${filePath}`));
+            }
+        } else {
+            console.error(chalk.red(`❌ Could not find comment section in ${filePath}`));
+        }
     } catch (error) {
         console.error(chalk.red(`❌ Error removing token mapping for: ${token}`), error);
     }
