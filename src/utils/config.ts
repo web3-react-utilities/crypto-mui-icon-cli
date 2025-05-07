@@ -74,5 +74,6 @@ export async function saveConfig(config: CliConfig): Promise<void> {
 export async function updateConfig(newValues: Partial<CliConfig>): Promise<void> {
     const currentConfig = getDefaultConfig();
     const updatedConfig = { ...currentConfig, ...newValues };
+    console.log(chalk.blue("Update configuration:"), updatedConfig);
     await saveConfig(updatedConfig);
 }
