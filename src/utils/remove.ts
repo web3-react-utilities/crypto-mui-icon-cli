@@ -462,15 +462,15 @@ ${sortedTokens.length > 0 ? sortedTokens.map((t) => `import { Icon${t} } from '.
 
                 newMapContent += "};";
 
-                // Loại bỏ hoàn toàn dấu ;;;; ở cuối file
-                const cleanAfterImport = afterImport.replace(/};+$/, "};");
+                // Loại bỏ hoàn toàn dấu ;;;; ở cuối file, kể cả khi có dấu xuống dòng
+                const cleanAfterImport = afterImport.replace(/};[;\s\n]*(?=\/\*\*|$)/, "};\n");
                 const newAfterImport = cleanAfterImport.replace(mapRegex, newMapContent);
 
                 // Tạo nội dung file hoàn chỉnh
                 const finalContent = newImportSection + newAfterImport;
 
-                // Loại bỏ bất kỳ dấu ;;;; nào ở cuối file
-                const cleanFinalContent = finalContent.replace(/};+$/, "};");
+                // Loại bỏ bất kỳ dấu ;;;; nào ở cuối file, kể cả khi có dấu xuống dòng
+                const cleanFinalContent = finalContent.replace(/};[;\s\n]*$/, "};\n");
 
                 await fs.writeFile(filePath, cleanFinalContent);
                 console.log(chalk.green(`✓ Removed token mapping for: ${token}`));
