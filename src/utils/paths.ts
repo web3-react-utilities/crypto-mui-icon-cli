@@ -60,8 +60,10 @@ export async function addImagePathConstant(filePath: string, token: string): Pro
         // Define constant name
         const constantName = `PNG_${token}`;
 
-        // Check if constant already exists
-        if (content.includes(constantName)) {
+        // Check if constant already exists - use a more precise check
+        const exactConstantRegex = new RegExp(`export const PNG_${token}: IconUrls`);
+        if (exactConstantRegex.test(content)) {
+            console.log(chalk.gray(`ℹ️ Image path constant for ${token} already exists, skipping`));
             return;
         }
 
@@ -73,14 +75,16 @@ export const ${constantName}: IconUrls = {
 };
 `;
 
-        // Extract all image path constants
-        const constantRegex = /export const PNG_([A-Z0-9]+): IconUrls = {[\s\S]+?};/g;
+        // Extract all image path constants - use a more inclusive regex to catch tokens with lowercase letters
+        const constantRegex = /export const PNG_([A-Za-z0-9_]+): IconUrls = {[\s\S]+?};/g;
         const constants = [];
         let match;
 
         while ((match = constantRegex.exec(content)) !== null) {
+            // Make sure to correctly extract token name without modifying it
+            const tokenName = match[1];
             constants.push({
-                name: match[1],
+                name: tokenName,
                 definition: match[0],
             });
         }
@@ -96,6 +100,9 @@ export const ${constantName}: IconUrls = {
 
         // Sort constants alphabetically by name
         constants.sort((a, b) => a.name.localeCompare(b.name));
+
+        // Debugging: Log all constants we're about to write
+        console.log(chalk.gray(`ℹ️ Adding new token ${token} to constants (Total: ${constants.length})`));
 
         // Find the position where constants start
         const insertPos = content.indexOf("// Token image paths");
@@ -129,13 +136,15 @@ export async function addWalletImagePathConstant(filePath: string, wallet: strin
         // Define constant name
         const constantName = `PNG_WALLET_${wallet.toUpperCase()}`;
 
-        // Check if constant already exists
-        if (content.includes(constantName)) {
+        // Check if constant already exists - use a more precise check
+        const exactConstantRegex = new RegExp(`export const PNG_WALLET_${wallet.toUpperCase()}: IconUrls`);
+        if (exactConstantRegex.test(content)) {
+            console.log(chalk.gray(`ℹ️ Image path constant for wallet ${wallet} already exists, skipping`));
             return;
         }
 
-        // Extract all wallet image path constants
-        const constantRegex = /export const PNG_WALLET_([A-Z0-9]+): IconUrls = {[\s\S]+?};/g;
+        // Extract all wallet image path constants - update regex to include all possible characters
+        const constantRegex = /export const PNG_WALLET_([A-Za-z0-9_]+): IconUrls = {[\s\S]+?};/g;
         const constants = [];
         let match;
 
@@ -157,6 +166,9 @@ export async function addWalletImagePathConstant(filePath: string, wallet: strin
 
         // Sort constants alphabetically by name
         constants.sort((a, b) => a.name.localeCompare(b.name));
+
+        // Debugging: Log all constants we're about to write
+        console.log(chalk.gray(`ℹ️ Adding new wallet ${wallet} to constants (Total: ${constants.length})`));
 
         // Find where wallet constants section is or should be
         const tokenSection = content.lastIndexOf("// Token image paths");
@@ -207,13 +219,15 @@ export async function addSystemImagePathConstant(filePath: string, system: strin
         // Define constant name
         const constantName = `PNG_SYSTEM_${system.toUpperCase()}`;
 
-        // Check if constant already exists
-        if (content.includes(constantName)) {
+        // Check if constant already exists - use a more precise check
+        const exactConstantRegex = new RegExp(`export const PNG_SYSTEM_${system.toUpperCase()}: IconUrls`);
+        if (exactConstantRegex.test(content)) {
+            console.log(chalk.gray(`ℹ️ Image path constant for system ${system} already exists, skipping`));
             return;
         }
 
-        // Extract all system image path constants
-        const constantRegex = /export const PNG_SYSTEM_([A-Z0-9]+): IconUrls = {[\s\S]+?};/g;
+        // Extract all system image path constants - update regex to include all possible characters
+        const constantRegex = /export const PNG_SYSTEM_([A-Za-z0-9_]+): IconUrls = {[\s\S]+?};/g;
         const constants = [];
         let match;
 
@@ -235,6 +249,9 @@ export async function addSystemImagePathConstant(filePath: string, system: strin
 
         // Sort constants alphabetically by name
         constants.sort((a, b) => a.name.localeCompare(b.name));
+
+        // Debugging: Log all constants we're about to write
+        console.log(chalk.gray(`ℹ️ Adding new system ${system} to constants (Total: ${constants.length})`));
 
         // Find where system constants section is or should be
         const systemSection = content.lastIndexOf("// System image paths");
