@@ -26,7 +26,7 @@ program
     .option("-t, --token <tokens...>", "Token icons to add (e.g. BTC ETH SOL)")
     .option("-w, --wallet <wallets...>", "Wallet icons to add (e.g. MetaMask WalletConnect)")
     .option("-s, --system <systems...>", "System icons to add")
-    .option("-d, --dir <directory>", "Target directory for icons", "./src/libs/crypto-icons")
+    .option("-d, --dir <directory>", "Target directory for icons") // Removed default value
     .action(addCommand);
 
 // Register remove command
@@ -36,7 +36,7 @@ program
     .option("-t, --token [tokens...]", "Token names to remove")
     .option("-w, --wallet [wallets...]", "Wallet names to remove")
     .option("-s, --system [systems...]", "System names to remove")
-    .option("-d, --dir <directory>", "Target directory (defaults to current directory)")
+    .option("-d, --dir <directory>", "Target directory (defaults to config value)")
     .action(removeCommand);
 
 // Display help if no arguments provided
