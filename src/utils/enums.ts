@@ -29,19 +29,28 @@ export async function updateExports(targetDir: string, options: { tokens: string
  */
 export async function updateTokenExports(filePath: string, tokens: string[]): Promise<void> {
     let content = "";
+    let existingExports = new Set<string>();
 
     // Check if file exists and read current content
     if (await fs.pathExists(filePath)) {
         content = await fs.readFile(filePath, "utf-8");
+
+        // Extract existing exports to maintain them
+        const exportLines = content.match(/export \{ Icon\w+ \} from '\.\/(Icon\w+)';\n/g) || [];
+        exportLines.forEach((line) => {
+            existingExports.add(line);
+        });
     }
 
     // Add new export statements
     for (const token of tokens) {
         const exportStatement = `export { Icon${token} } from './Icon${token}';\n`;
-        if (!content.includes(exportStatement)) {
-            content += exportStatement;
-        }
+        existingExports.add(exportStatement);
     }
+
+    // Convert to array, sort alphabetically, and join
+    const sortedExports = Array.from(existingExports).sort();
+    content = sortedExports.join("");
 
     // Write updated content
     await fs.writeFile(filePath, content);
@@ -52,19 +61,28 @@ export async function updateTokenExports(filePath: string, tokens: string[]): Pr
  */
 export async function updateWalletExports(filePath: string, wallets: string[]): Promise<void> {
     let content = "";
+    let existingExports = new Set<string>();
 
     // Check if file exists and read current content
     if (await fs.pathExists(filePath)) {
         content = await fs.readFile(filePath, "utf-8");
+
+        // Extract existing exports to maintain them
+        const exportLines = content.match(/export \{ Icon\w+ \} from '\.\/(Icon\w+)';\n/g) || [];
+        exportLines.forEach((line) => {
+            existingExports.add(line);
+        });
     }
 
     // Add new export statements
     for (const wallet of wallets) {
         const exportStatement = `export { Icon${wallet} } from './Icon${wallet}';\n`;
-        if (!content.includes(exportStatement)) {
-            content += exportStatement;
-        }
+        existingExports.add(exportStatement);
     }
+
+    // Convert to array, sort alphabetically, and join
+    const sortedExports = Array.from(existingExports).sort();
+    content = sortedExports.join("");
 
     // Write updated content
     await fs.writeFile(filePath, content);
@@ -75,19 +93,28 @@ export async function updateWalletExports(filePath: string, wallets: string[]): 
  */
 export async function updateSystemExports(filePath: string, systems: string[]): Promise<void> {
     let content = "";
+    let existingExports = new Set<string>();
 
     // Check if file exists and read current content
     if (await fs.pathExists(filePath)) {
         content = await fs.readFile(filePath, "utf-8");
+
+        // Extract existing exports to maintain them
+        const exportLines = content.match(/export \{ Icon\w+ \} from '\.\/(Icon\w+)';\n/g) || [];
+        exportLines.forEach((line) => {
+            existingExports.add(line);
+        });
     }
 
     // Add new export statements
     for (const system of systems) {
         const exportStatement = `export { Icon${system} } from './Icon${system}';\n`;
-        if (!content.includes(exportStatement)) {
-            content += exportStatement;
-        }
+        existingExports.add(exportStatement);
     }
+
+    // Convert to array, sort alphabetically, and join
+    const sortedExports = Array.from(existingExports).sort();
+    content = sortedExports.join("");
 
     // Write updated content
     await fs.writeFile(filePath, content);

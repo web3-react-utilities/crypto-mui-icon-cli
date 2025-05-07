@@ -206,13 +206,30 @@ export async function removeFromTokenEnum(filePath: string, token: string): Prom
 
         if (match) {
             const existingEnum = match[0];
-            const tokenLineRegex = new RegExp(`\\s+${token}\\s*=\\s*['"]${token}['"],?\\n?`, "g");
 
-            // Remove the token line from the enum
-            const updatedEnum = existingEnum.replace(tokenLineRegex, "");
+            // Get all tokens in the enum
+            const tokenRegex = /\s+(\w+)\s*=\s*['"](\w+)['"]/g;
+            const tokens = [];
+            let tokenMatch;
+
+            while ((tokenMatch = tokenRegex.exec(existingEnum)) !== null) {
+                if (tokenMatch[1] !== token) {
+                    tokens.push(tokenMatch[1]);
+                }
+            }
+
+            // Sort remaining tokens alphabetically
+            tokens.sort();
+
+            // Rebuild the enum with sorted tokens
+            let newEnum = "export enum TokenName {\n";
+            for (const t of tokens) {
+                newEnum += `  ${t} = '${t}',\n`;
+            }
+            newEnum += "}";
 
             // Replace the old enum with the updated one
-            content = content.replace(enumRegex, updatedEnum);
+            content = content.replace(enumRegex, newEnum);
             await fs.writeFile(filePath, content);
             console.log(chalk.green(`✓ Removed from TokenName enum: ${token}`));
         }
@@ -236,13 +253,30 @@ export async function removeFromWalletEnum(filePath: string, wallet: string): Pr
 
         if (match) {
             const existingEnum = match[0];
-            const walletLineRegex = new RegExp(`\\s+${wallet}\\s*=\\s*['"]${wallet}['"],?\\n?`, "g");
 
-            // Remove the wallet line from the enum
-            const updatedEnum = existingEnum.replace(walletLineRegex, "");
+            // Get all wallets in the enum
+            const walletRegex = /\s+(\w+)\s*=\s*['"](\w+)['"]/g;
+            const wallets = [];
+            let walletMatch;
+
+            while ((walletMatch = walletRegex.exec(existingEnum)) !== null) {
+                if (walletMatch[1] !== wallet) {
+                    wallets.push(walletMatch[1]);
+                }
+            }
+
+            // Sort remaining wallets alphabetically
+            wallets.sort();
+
+            // Rebuild the enum with sorted wallets
+            let newEnum = "export enum WalletName {\n";
+            for (const w of wallets) {
+                newEnum += `  ${w} = '${w}',\n`;
+            }
+            newEnum += "}";
 
             // Replace the old enum with the updated one
-            content = content.replace(enumRegex, updatedEnum);
+            content = content.replace(enumRegex, newEnum);
             await fs.writeFile(filePath, content);
             console.log(chalk.green(`✓ Removed from WalletName enum: ${wallet}`));
         }
@@ -266,13 +300,30 @@ export async function removeFromSystemEnum(filePath: string, system: string): Pr
 
         if (match) {
             const existingEnum = match[0];
-            const systemLineRegex = new RegExp(`\\s+${system}\\s*=\\s*['"]${system}['"],?\\n?`, "g");
 
-            // Remove the system line from the enum
-            const updatedEnum = existingEnum.replace(systemLineRegex, "");
+            // Get all systems in the enum
+            const systemRegex = /\s+(\w+)\s*=\s*['"](\w+)['"]/g;
+            const systems = [];
+            let systemMatch;
+
+            while ((systemMatch = systemRegex.exec(existingEnum)) !== null) {
+                if (systemMatch[1] !== system) {
+                    systems.push(systemMatch[1]);
+                }
+            }
+
+            // Sort remaining systems alphabetically
+            systems.sort();
+
+            // Rebuild the enum with sorted systems
+            let newEnum = "export enum SystemName {\n";
+            for (const s of systems) {
+                newEnum += `  ${s} = '${s}',\n`;
+            }
+            newEnum += "}";
 
             // Replace the old enum with the updated one
-            content = content.replace(enumRegex, updatedEnum);
+            content = content.replace(enumRegex, newEnum);
             await fs.writeFile(filePath, content);
             console.log(chalk.green(`✓ Removed from SystemName enum: ${system}`));
         }
@@ -365,6 +416,24 @@ export async function removeTokenMapping(filePath: string, token: string): Promi
         // Remove mapping entry
         const mappingRegex = new RegExp(`\\s+\\[TokenName\\.${token}\\]: Icon${token},\\n`, "g");
         content = content.replace(mappingRegex, "");
+
+        // Fix the formatting if the closing brace is wrong
+        const mapObjectRegex = /(export const mapNameToIcon[^{]+\{[^}]*\})/s;
+        const mapObjectMatch = content.match(mapObjectRegex);
+
+        if (mapObjectMatch) {
+            const mapObject = mapObjectMatch[0];
+            let updatedMapObject = mapObject;
+
+            // Fix cases where the last map entry ends with a comma and is immediately followed by closing brace
+            updatedMapObject = updatedMapObject.replace(/,(\s*)\}/s, "\n$1}");
+
+            // Fix cases where the empty object might have weird formatting
+            updatedMapObject = updatedMapObject.replace(/{(\s*)(\/\/[^\n]*\n\s*)?}/, "{\n$1$2\n}");
+
+            // Replace the map object with the updated one
+            content = content.replace(mapObjectRegex, updatedMapObject);
+        }
 
         await fs.writeFile(filePath, content);
         console.log(chalk.green(`✓ Removed token mapping for: ${token}`));

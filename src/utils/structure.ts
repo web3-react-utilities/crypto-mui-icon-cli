@@ -200,7 +200,7 @@ export default function IconCrypto({ urls, title, modeOnly, ...svgProps }: IconP
                 component={"image"}
                 width="70"
                 height="70"
-                xlinkHref={modeOnly ? (modeOnly == "dark" ? urls.darkModeUrl : urls.lightModeUrl) : theme.palette.mode === "dark" ? urls.darkModeUrl : urls.lightModeUrl}
+                xlinkHref={modeOnly ? (modeOnly == "dark" ? urls.darkmode : urls.lightmode) : theme.palette.mode === "dark" ? urls.darkmode : urls.lightmode}
                 xlinkTitle={title}
             />
         </MuiSvgIcon>

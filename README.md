@@ -9,7 +9,7 @@ A CLI tool for managing and adding crypto token icons with MUI support to your R
 npm install -g crypto-mui-icon-cli
 
 # Or use directly with npx
-npx crypto-mui-icon-cli <command>
+npx crypto-mui-icon-cli@latest <command>
 ```
 
 ## Updating
@@ -28,7 +28,7 @@ When using npx, it will automatically use the latest version, but you can force 
 
 ```bash
 npx clear-npx-cache
-npx crypto-mui-icon-cli <command>
+npx crypto-mui-icon-cli@latest <command>
 ```
 
 You can check your current version:
@@ -36,7 +36,7 @@ You can check your current version:
 ```bash
 crypto-mui-icon-cli --version
 # or
-npx crypto-mui-icon-cli --version
+npx crypto-mui-icon-cli@latest --version
 ```
 
 ## Usage
@@ -44,7 +44,7 @@ npx crypto-mui-icon-cli --version
 ### Initialize Basic Structure
 
 ```bash
-npx crypto-mui-icon-cli init
+npx crypto-mui-icon-cli@latest init
 ```
 
 This command will create the basic folder structure for crypto icons:
@@ -66,19 +66,19 @@ This command will create the basic folder structure for crypto icons:
 
 ```bash
 # Add one or more token icons
-npx crypto-mui-icon-cli add --token BTC ETH SOL
+npx crypto-mui-icon-cli@latest add --token BTC ETH SOL
 
 # Add one or more wallet icons
-npx crypto-mui-icon-cli add --wallet MetaMask WalletConnect
+npx crypto-mui-icon-cli@latest add --wallet MetaMask WalletConnect
 
 # Add system icons
-npx crypto-mui-icon-cli add --system Blockchain NFT
+npx crypto-mui-icon-cli@latest add --system Blockchain NFT
 
 # Add multiple types of icons at once
-npx crypto-mui-icon-cli add --token BTC ETH --wallet MetaMask
+npx crypto-mui-icon-cli@latest add --token BTC ETH --wallet MetaMask
 
 # Specify a target directory
-npx crypto-mui-icon-cli add --token BTC --dir ./src/assets/crypto
+npx crypto-mui-icon-cli@latest add --token BTC --dir ./src/assets/crypto
 ```
 
 If no options are specified, the tool will display an interactive menu for you to choose from.
@@ -87,19 +87,19 @@ If no options are specified, the tool will display an interactive menu for you t
 
 ```bash
 # Remove one or more token icons
-npx crypto-mui-icon-cli remove --token BTC ETH
+npx crypto-mui-icon-cli@latest remove --token BTC ETH
 
 # Remove one or more wallet icons
-npx crypto-mui-icon-cli remove --wallet MetaMask WalletConnect
+npx crypto-mui-icon-cli@latest remove --wallet MetaMask WalletConnect
 
 # Remove system icons
-npx crypto-mui-icon-cli remove --system Blockchain NFT
+npx crypto-mui-icon-cli@latest remove --system Blockchain NFT
 
 # Remove multiple types of icons at once
-npx crypto-mui-icon-cli remove --token BTC --wallet MetaMask
+npx crypto-mui-icon-cli@latest remove --token BTC --wallet MetaMask
 
 # Specify the target directory containing icons to remove
-npx crypto-mui-icon-cli remove --token BTC --dir ./src/libs/crypto-icons
+npx crypto-mui-icon-cli@latest remove --token BTC --dir ./src/libs/crypto-icons
 ```
 
 If no options are specified, the tool will display an interactive menu for you to choose which icons to remove.
@@ -129,7 +129,7 @@ When you don't specify a target directory, the CLI will:
 When you specify a target directory with `--dir`, it's automatically saved to the configuration file for future use:
 
 ```bash
-npx crypto-mui-icon-cli add --token BTC --dir ./my-custom-path
+npx crypto-mui-icon-cli@latest add --token BTC --dir ./my-custom-path
 # Future commands in this project will default to ./my-custom-path
 ```
 
