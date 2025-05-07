@@ -1,10 +1,10 @@
 import chalk from "chalk";
 import path from "path";
 import fs from "fs-extra";
-import { Command } from "commander";
 import { AddCommandOptions } from "../types";
 import { promptTokens, promptWallets, promptTargetDirectory } from "../utils/prompts";
 import { copyTokenTemplates, copyWalletTemplates, copySystemTemplates, updateExports } from "../utils/fileHelpers";
+import { getDefaultConfig, updateConfig } from "../utils/config";
 
 export async function addCommand(options: AddCommandOptions): Promise<void> {
     try {
@@ -17,9 +17,19 @@ export async function addCommand(options: AddCommandOptions): Promise<void> {
             tokens = await promptTokens();
         }
 
-        // If directory not specified, prompt for it
+        // If directory not specified, use the default config or prompt
         if (!targetDir) {
-            targetDir = await promptTargetDirectory("Select target directory for the icons:");
+            try {
+                const config = getDefaultConfig();
+                targetDir = config.targetDirectory;
+                console.log(chalk.blue(`Using target directory from configuration: ${targetDir}`));
+            } catch (error) {
+                // If we can't get the config, prompt the user
+                targetDir = await promptTargetDirectory("Select target directory for the icons:");
+            }
+        } else {
+            // Save the provided directory to config for future use
+            await updateConfig({ targetDirectory: targetDir });
         }
 
         // Ensure the target directory exists
@@ -58,24 +68,3 @@ export async function addCommand(options: AddCommandOptions): Promise<void> {
         process.exit(1);
     }
 }
-
-export const createAddCommand = (): Command => {
-    const command = new Command("add")
-        .description("Add specific token, wallet, or system icons to your project")
-        .option("-t, --token <tokens...>", "Token icons to add (e.g. BTC ETH SOL)")
-        .option("-w, --wallet <wallets...>", "Wallet icons to add (e.g. MetaMask WalletConnect)")
-        .option("-s, --system <systems...>", "System icons to add")
-        .option("-d, --dir <directory>", "Target directory for icons", "./src/libs/crypto-icons")
-        .action(async (options) => {
-            const cmdOptions: AddCommandOptions = {
-                token: options.token || [],
-                wallet: options.wallet || [],
-                system: options.system || [],
-                dir: options.dir ? path.resolve(options.dir) : process.cwd(),
-            };
-
-            await addCommand(cmdOptions);
-        });
-
-    return command;
-};

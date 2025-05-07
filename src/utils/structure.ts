@@ -10,7 +10,7 @@ export async function createBaseStructure(targetDir: string): Promise<void> {
     await fs.ensureDir(targetDir);
 
     // Create subdirectories
-    const dirs = ["tokens", "wallets", "systems", "utils", "types", "constants"];
+    const dirs = ["tokens", "wallets", "systems", "common", "types", "constants"];
     for (const dir of dirs) {
         await fs.ensureDir(path.join(targetDir, dir));
         console.log(chalk.green(`✓ Created directory: ${path.join(targetDir, dir)}`));
@@ -18,7 +18,10 @@ export async function createBaseStructure(targetDir: string): Promise<void> {
 
     // Create base files
     await createBaseTypes(targetDir);
-    await createBaseUtils(targetDir);
+    await createCommonHelpers(targetDir);
+    await createIconCrypto(targetDir);
+    await createIconToken(targetDir);
+    await createIconTokenAndName(targetDir);
     await createIndexExports(targetDir);
 
     console.log(chalk.green("✓ Created base files"));
@@ -92,18 +95,121 @@ export const mapNameToIcon: Record<TokenName, SvgComponent> = {
 }
 
 /**
- * Create base utils file
+ * Create common helper files
  */
-export async function createBaseUtils(targetDir: string): Promise<void> {
-    const utilsContent = `import { SvgIconProps } from '@mui/material/SvgIcon';
-import React from 'react';
+export async function createCommonHelpers(targetDir: string): Promise<void> {
+    try {
+        const commonDir = path.join(targetDir, "common");
+        await fs.ensureDir(commonDir);
 
-export const withTitle = (Component: React.FC<SvgIconProps>, title: string): React.FC<SvgIconProps> => {
-  return (props) => <Component {...props} titleAccess={title} />;
+        // Create index.ts file in common directory
+        const indexContent = `export { default as IconCrypto } from './IconCrypto';
+// Export other utilities as needed
+`;
+        await fs.writeFile(path.join(commonDir, "index.ts"), indexContent);
+        console.log(chalk.green(`✓ Created file: ${path.join(commonDir, "index.ts")}`));
+    } catch (error) {
+        console.error(chalk.red(`❌ Error creating common helpers:`), error);
+    }
+}
+
+/**
+ *
+ * Create IconToken component file
+ */
+export async function createIconToken(targetDir: string): Promise<void> {
+    const iconTokenContent = `import { SxProps, Typography } from "@mui/material";
+import { mapNameToIcon } from "../constants/iconMappings";
+
+type Props = {
+    /**
+     * The value of tokeName should be in type TokenName
+     * @example
+     * <TokenIcon tokenName="TRX" />
+     * <TokenIcon tokenName={value as any} />
+     * @type {TokenName}
+     */
+    tokenName: keyof typeof mapNameToIcon;
+    sx?: SxProps;
 };
+export function IconToken({ tokenName, sx }: Props) {
+    if (mapNameToIcon[tokenName]) {
+        const Icon = mapNameToIcon[tokenName];
+        return <Icon sx={sx} />;
+    }
+    return <Typography sx={sx}>{tokenName}</Typography>;
+}
+`;
+    await fs.writeFile(path.join(targetDir, "common", "IconToken.tsx"), iconTokenContent);
+    console.log(chalk.green(`✓ Created file: ${path.join(targetDir, "common", "IconToken.tsx")}`));
+}
+
+/**
+ *
+ * Create IconTokenAndName component file
+ */
+export async function createIconTokenAndName(targetDir: string): Promise<void> {
+    const iconTokenAndNameContent = `import { Box, SxProps, Typography } from "@mui/material";
+import { Help } from "@mui/icons-material";
+import { TokenName } from "../types";
+import { mapNameToIcon } from "../constants/iconMappings";
+
+type Props = {
+    tokenName: TokenName | string;
+    sx?: SxProps;
+    sxIcon?: SxProps;
+    sxText?: SxProps;
+    reverse?: boolean;
+};
+
+export function IconTokenAndName({ tokenName, sx, sxIcon, sxText, reverse = false }: Props) {
+    const Icon = mapNameToIcon[tokenName as keyof typeof mapNameToIcon] || Help;
+    return (
+        <Box sx={{ display: "flex", placeItems: "center", columnGap: 0.6, flexDirection: reverse ? "row-reverse" : undefined, width: "fit-content", ...sx }}>
+            <Icon sx={{ fontSize: "24px", ...sxIcon }} />
+            <Typography fontWeight={600} sx={sxText}>
+                {tokenName}
+            </Typography>
+        </Box>
+    );
+}
+`;
+    await fs.writeFile(path.join(targetDir, "common", "IconTokenAndName.tsx"), iconTokenAndNameContent);
+    console.log(chalk.green(`✓ Created file: ${path.join(targetDir, "common", "IconTokenAndName.tsx")}`));
+}
+
+/**
+ * Create IconCrypto component file
+ */
+export async function createIconCrypto(targetDir: string): Promise<void> {
+    const iconCryptoContent = `import { IconUrls } from "../types";
+import { Box, SvgIconProps } from "@mui/material";
+import MuiSvgIcon from "@mui/material/SvgIcon";
+import { useTheme } from "@mui/material/styles";
+
+type IconProps = SvgIconProps & {
+    urls: IconUrls;
+    modeOnly?: "light" | "dark";
+    title: string;
+};
+export default function IconCrypto({ urls, title, modeOnly, ...svgProps }: IconProps) {
+    const theme = useTheme();
+    return (
+        <MuiSvgIcon {...svgProps} titleAccess={title} xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" xmlSpace="preserve" version="1.1" viewBox="0 0 70 70">
+            <Box
+                component={"image"}
+                width="70"
+                height="70"
+                xlinkHref={modeOnly ? (modeOnly == "dark" ? urls.darkModeUrl : urls.lightModeUrl) : theme.palette.mode === "dark" ? urls.darkModeUrl : urls.lightModeUrl}
+                xlinkTitle={title}
+            />
+        </MuiSvgIcon>
+    );
+}
 `;
 
-    await fs.writeFile(path.join(targetDir, "utils", "iconHelpers.ts"), utilsContent);
+    await fs.writeFile(path.join(targetDir, "common", "IconCrypto.tsx"), iconCryptoContent);
+    console.log(chalk.green(`✓ Created file: ${path.join(targetDir, "common", "IconCrypto.tsx")}`));
 }
 
 /**
@@ -115,11 +221,12 @@ export async function createIndexExports(targetDir: string): Promise<void> {
 export * from './wallets';
 export * from './systems';
 export * from './types';
+export * from './common';
 `;
     await fs.writeFile(path.join(targetDir, "index.ts"), mainIndexContent);
 
     // Category index files
-    const categories = ["tokens", "wallets", "systems"];
+    const categories = ["tokens", "wallets", "systems", "common"];
     for (const category of categories) {
         await fs.writeFile(path.join(targetDir, category, "index.ts"), "// Exports will be added automatically\n");
     }

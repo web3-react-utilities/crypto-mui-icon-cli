@@ -9,7 +9,7 @@ import { removeCommand } from "./commands/remove";
 const program = new Command();
 
 // Set up CLI information
-program.name("crypto-mui-icon-cli").description("CLI tool for adding crypto icons with MUI support to your project").version("1.0.0");
+program.name("crypto-mui-icon-cli").description("CLI tool for adding crypto icons with MUI support to your project").version("1.2.2");
 
 // Register commands
 program.command("init").description("Initialize your project with base structure for crypto icons").action(initCommand);
@@ -40,5 +40,3 @@ if (process.argv.length === 2) {
 
 // Parse command line arguments
 program.parse();
-
-console.log(chalk.green("\nThank you for using crypto-mui-icon-cli! 🚀\n"));

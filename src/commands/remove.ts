@@ -4,6 +4,7 @@ import { Command } from "commander";
 import { RemoveCommandOptions } from "../types";
 import { promptRemoveType, promptTokensToRemove, promptWalletsToRemove, promptSystemsToRemove, promptTargetDirectory } from "../utils/prompts";
 import { removeTokens, removeWallets, removeSystems } from "../utils/remove";
+import { getDefaultConfig } from "../utils/config";
 
 export async function removeCommand(options: RemoveCommandOptions): Promise<void> {
     try {
@@ -39,9 +40,16 @@ export async function removeCommand(options: RemoveCommandOptions): Promise<void
             }
         }
 
-        // If directory not specified, prompt for it
+        // If directory not specified, use the default config or prompt
         if (!targetDir) {
-            targetDir = await promptTargetDirectory("Select directory containing the icons to remove:");
+            try {
+                const config = getDefaultConfig();
+                targetDir = config.targetDirectory;
+                console.log(chalk.blue(`Using target directory from configuration: ${targetDir}`));
+            } catch (error) {
+                // If we can't get the config, prompt the user
+                targetDir = await promptTargetDirectory("Select directory containing the icons to remove:");
+            }
         }
 
         // Process the remove operations
@@ -73,13 +81,13 @@ export const createRemoveCommand = (): Command => {
         .option("-t, --token [tokens...]", "Token names to remove")
         .option("-w, --wallet [wallets...]", "Wallet names to remove")
         .option("-s, --system [systems...]", "System names to remove")
-        .option("-d, --dir <directory>", "Target directory (defaults to current directory)")
+        .option("-d, --dir <directory>", "Target directory (defaults to configured directory or current directory)")
         .action(async (options) => {
             const cmdOptions: RemoveCommandOptions = {
                 token: options.token || [],
                 wallet: options.wallet || [],
                 system: options.system || [],
-                dir: options.dir ? path.resolve(options.dir) : process.cwd(),
+                dir: options.dir ? path.resolve(options.dir) : undefined,
             };
 
             await removeCommand(cmdOptions);

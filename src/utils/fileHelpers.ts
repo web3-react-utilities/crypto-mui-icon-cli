@@ -4,7 +4,7 @@
  */
 
 // Export from structure module
-export { createBaseStructure, createBaseTypes, createBaseUtils, createIndexExports } from "./structure";
+export { createBaseStructure, createBaseTypes, createCommonHelpers, createIconCrypto, createIndexExports } from "./structure";
 
 // Export from enums module
 export { updateExports, updateTokenExports, updateWalletExports, updateSystemExports, updateTokenEnum, updateWalletEnum, updateSystemEnum } from "./enums";

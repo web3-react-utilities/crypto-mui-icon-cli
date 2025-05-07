@@ -12,6 +12,33 @@ npm install -g crypto-mui-icon-cli
 npx crypto-mui-icon-cli <command>
 ```
 
+## Updating
+
+To update the CLI tool to the latest version:
+
+```bash
+# If installed globally
+npm update -g crypto-mui-icon-cli
+
+# Or install the latest version directly
+npm install -g crypto-mui-icon-cli@latest
+```
+
+When using npx, it will automatically use the latest version, but you can force an update with:
+
+```bash
+npx clear-npx-cache
+npx crypto-mui-icon-cli <command>
+```
+
+You can check your current version:
+
+```bash
+crypto-mui-icon-cli --version
+# or
+npx crypto-mui-icon-cli --version
+```
+
 ## Usage
 
 ### Initialize Basic Structure
@@ -30,7 +57,7 @@ This command will create the basic folder structure for crypto icons:
         /tokens       # Contains token icons
         /wallets      # Contains wallet icons
         /systems      # Contains system icons
-        /utils        # Utility functions
+        /common       # Common utilities and shared components
         /types        # Type definitions
         /constants    # Constant values
 ```
@@ -84,6 +111,39 @@ When you remove an icon, the following updates are made:
 3. The entry is removed from the corresponding enum (TokenName, WalletName, or SystemName)
 4. The image path constant is removed from constants/imagePaths.ts
 5. For tokens, the mapping is also removed from iconMappings.ts
+
+### Configuration
+
+The CLI tool uses a project-specific configuration through a `.crypto-mui-icon-cli.json` file stored in your project's root directory (same folder as your package.json). This keeps project configuration together with the project itself.
+
+#### Default Configuration
+
+When you don't specify a target directory, the CLI will:
+
+1. Look for a configuration file in your project's root directory
+2. Use the directory specified in that configuration
+3. If no configuration exists, use the default path or prompt you to select a directory
+
+#### Automatic Configuration
+
+When you specify a target directory with `--dir`, it's automatically saved to the configuration file for future use:
+
+```bash
+npx crypto-mui-icon-cli add --token BTC --dir ./my-custom-path
+# Future commands in this project will default to ./my-custom-path
+```
+
+#### Manual Configuration
+
+You can also manually create or edit the configuration file in your project root:
+
+```json
+{
+    "targetDirectory": "./src/libs/crypto-icons"
+}
+```
+
+This project-specific approach means each project can have its own configuration, which is especially useful in monorepo setups or when working on multiple projects.
 
 ## Generated Structure
 
