@@ -2,7 +2,7 @@ import chalk from "chalk";
 import path from "path";
 import { Command } from "commander";
 import { RemoveCommandOptions } from "../types";
-import { promptRemoveType, promptTokensToRemove, promptWalletsToRemove, promptSystemsToRemove, promptTargetDirectory } from "../utils/prompts";
+import { promptRemoveType, promptTokensToRemove, promptWalletsToRemove, promptSystemsToRemove } from "../utils/prompts";
 import { removeTokens, removeWallets, removeSystems } from "../utils/remove";
 import { getDefaultConfig } from "../utils/config";
 
@@ -41,16 +41,9 @@ export async function removeCommand(options: RemoveCommandOptions): Promise<void
         }
 
         // If directory not specified, use the default config or prompt
-        if (!targetDir) {
-            try {
-                const config = getDefaultConfig();
-                targetDir = config.targetDirectory;
-                console.log(chalk.blue(`Using target directory from configuration: ${targetDir}`));
-            } catch (error) {
-                // If we can't get the config, prompt the user
-                targetDir = await promptTargetDirectory("Select directory containing the icons to remove:");
-            }
-        }
+
+        const config = getDefaultConfig();
+        targetDir = targetDir || config.targetDirectory;
 
         // Process the remove operations
         if (tokens.length > 0) {

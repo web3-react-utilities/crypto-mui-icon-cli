@@ -7,7 +7,7 @@ export async function initCommand(): Promise<void> {
     try {
         console.log(chalk.blue("🚀 Initializing crypto icons project structure...\n"));
 
-        // Prompt for the target directory
+        //! Prompt for the target directory: user input from terminal
         const targetDir = await promptTargetDirectory("Select target directory for crypto icon components:");
 
         // Create the base structure

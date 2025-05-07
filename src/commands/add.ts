@@ -18,19 +18,10 @@ export async function addCommand(options: AddCommandOptions): Promise<void> {
         }
 
         // If directory not specified, use the default config or prompt
-        if (!targetDir) {
-            try {
-                const config = getDefaultConfig();
-                targetDir = config.targetDirectory;
-                console.log(chalk.blue(`Using target directory from configuration: ${targetDir}`));
-            } catch (error) {
-                // If we can't get the config, prompt the user
-                targetDir = await promptTargetDirectory("Select target directory for the icons:");
-            }
-        } else {
-            // Save the provided directory to config for future use
-            await updateConfig({ targetDirectory: targetDir });
-        }
+
+        const config = getDefaultConfig();
+        console.log("targetDir: ", targetDir);
+        targetDir = targetDir || config.targetDirectory;
 
         // Ensure the target directory exists
         await fs.ensureDir(targetDir);

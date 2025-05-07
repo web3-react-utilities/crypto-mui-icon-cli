@@ -46,9 +46,7 @@ export function getDefaultConfig(): CliConfig {
     } catch (error) {
         console.warn(chalk.yellow("⚠️ Could not read configuration file. Using default settings."));
     }
-
     // Return default configuration
-    console.log(chalk.blue("Using default configuration."));
     return {
         targetDirectory: "./src/libs/crypto-icons",
     };
