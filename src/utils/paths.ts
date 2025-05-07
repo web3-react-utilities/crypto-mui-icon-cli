@@ -288,89 +288,98 @@ export async function updateTokenMapping(filePath: string, token: string): Promi
         // Read current content
         let content = await fs.readFile(filePath, "utf-8");
 
-        // Check if the import statement exists
-        const importStatement = `import { Icon${token} } from '../tokens/Icon${token}';`;
-        if (!content.includes(importStatement)) {
-            // Add import statement after the initial imports
-            const importPos = content.indexOf("import {");
-            if (importPos > -1) {
-                const endOfImports = content.indexOf("\n\n", importPos);
-                if (endOfImports > -1) {
-                    // Extract all existing imports
-                    const importSectionText = content.substring(importPos, endOfImports);
-                    const importLines = importSectionText.split("\n");
+        // Handle import statements
+        const importRegex = /import\s+{[^}]*}\s+from\s+['"][^'"]+['"]/g;
+        const importSection = content.match(/(import\s+{[^}]*}\s+from\s+['"][^'"]+['"][\s\n]*)+/);
 
-                    // Add the new import
-                    importLines.push(importStatement);
+        // Extract all imports
+        const imports = [];
+        if (importSection) {
+            const importSectionText = importSection[0];
+            const importLines = importSectionText.match(importRegex) || [];
 
-                    // Sort imports alphabetically
-                    importLines.sort((a, b) => {
-                        // Extract the token names from import statements
-                        const tokenNameA = a.match(/Icon(\w+)/)?.[1] || "";
-                        const tokenNameB = b.match(/Icon(\w+)/)?.[1] || "";
-                        return tokenNameA.localeCompare(tokenNameB);
-                    });
-
-                    // Replace the import section
-                    const newImportSection = importLines.join("\n");
-                    content = content.slice(0, importPos) + newImportSection + content.slice(endOfImports);
-                }
+            // Get existing imports
+            for (const importLine of importLines) {
+                imports.push(importLine);
             }
         }
 
-        // Define mapping entry
-        const mappingEntry = `  [TokenName.${token}]: Icon${token},`;
-
-        // Check if mapping already exists
-        if (content.includes(mappingEntry)) {
-            await fs.writeFile(filePath, content);
-            return;
+        // Add new import if it doesn't exist
+        const tokenImport = `import { Icon${token} } from '../tokens/Icon${token}'`;
+        if (!imports.some((imp) => imp.includes(`Icon${token}`))) {
+            imports.push(tokenImport);
         }
 
-        // Extract the entire mapping object
-        const mapRegex = /export const mapNameToIcon[^{]+{([^}]*)}/s;
+        // Sort imports alphabetically
+        imports.sort((a, b) => {
+            const tokenA = a.match(/Icon(\w+)/)?.[1] || "";
+            const tokenB = b.match(/Icon(\w+)/)?.[1] || "";
+            return tokenA.localeCompare(tokenB);
+        });
+
+        // Create new import section
+        const newImportSection = imports.join(";\n") + ";\n\n";
+
+        // Handle the mapNameToIcon section
+        const mapRegex = /export\s+const\s+mapNameToIcon[^{]+{([^}]*)}/s;
         const mapMatch = content.match(mapRegex);
 
         if (mapMatch) {
-            // Get the existing mapping entries
+            // Get existing entries
             const mapContent = mapMatch[1];
-            const entries =
-                mapContent.trim().length > 0
-                    ? mapContent
-                          .split("\n")
-                          .map((line) => line.trim())
-                          .filter((line) => line.length > 0)
-                    : [];
+            const entryRegex = /\[\s*TokenName\.(\w+)\s*\]\s*:\s*Icon\w+\s*,?/g;
+            const entries: Record<string, string> = {};
+            let entryMatch;
 
-            // Add the new entry
-            entries.push(mappingEntry);
-
-            // Sort entries alphabetically by token name
-            entries.sort((a, b) => {
-                const tokenA = a.match(/\[TokenName\.(\w+)\]/)?.[1] || "";
-                const tokenB = b.match(/\[TokenName\.(\w+)\]/)?.[1] || "";
-                return tokenA.localeCompare(tokenB);
-            });
-
-            // Rebuild the map with sorted entries
-            let newMapContent = "export const mapNameToIcon: Record<TokenName, SvgComponent> = {\n";
-            if (entries.length > 0) {
-                entries.forEach((entry) => {
-                    newMapContent += `${entry}\n`;
-                });
-            } else {
-                newMapContent += "  // This will be populated automatically as you add tokens\n";
+            while ((entryMatch = entryRegex.exec(mapContent)) !== null) {
+                const tokenName = entryMatch[1];
+                entries[tokenName] = tokenName;
             }
+
+            // Add new entry if not exists
+            if (!entries[token]) {
+                entries[token] = token;
+            }
+
+            // Sort entries alphabetically
+            const sortedTokens = Object.keys(entries).sort();
+
+            // Rebuild the map
+            let newMapContent = "export const mapNameToIcon: Record<TokenName, SvgComponent> = {\n";
+
+            if (sortedTokens.length > 0) {
+                if (mapContent.includes("// This will be populated automatically")) {
+                    newMapContent += "    // This will be populated automatically as you add tokens\n";
+                }
+
+                for (const t of sortedTokens) {
+                    newMapContent += `    [TokenName.${t}]: Icon${t},\n`;
+                }
+            } else {
+                newMapContent += "    // This will be populated automatically as you add tokens\n";
+            }
+
             newMapContent += "};";
 
-            // Replace the map in the content
-            content = content.replace(mapRegex, newMapContent);
+            // Replace the import section and map content
+            let newContent = content;
+
+            // Replace import section if it exists, otherwise add at the beginning
+            if (importSection) {
+                newContent = newContent.replace(importSection[0], newImportSection);
+            } else {
+                newContent = newImportSection + newContent;
+            }
+
+            // Replace map section
+            newContent = newContent.replace(mapRegex, newMapContent);
+
+            // Write updated content
+            await fs.writeFile(filePath, newContent);
+            console.log(chalk.blue(`✓ Updated token mapping for: ${token}`));
+        } else {
+            console.error(chalk.red(`❌ Could not find mapNameToIcon in ${filePath}`));
         }
-
-        // Write updated content
-        await fs.writeFile(filePath, content);
-
-        console.log(chalk.blue(`✓ Updated token mapping for: ${token}`));
     } catch (error) {
         console.error(chalk.red(`❌ Error updating token mapping for: ${token}`), error);
     }
