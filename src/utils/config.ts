@@ -39,6 +39,8 @@ export function getDefaultConfig(): CliConfig {
 
         if (fs.existsSync(configPath)) {
             const configContent = fs.readFileSync(configPath, "utf8");
+            console.log(chalk.blue(`Using configuration from ${configPath}`));
+            console.log(chalk.blue("Configuration content:"), configContent);
             return JSON.parse(configContent);
         }
     } catch (error) {
@@ -46,6 +48,7 @@ export function getDefaultConfig(): CliConfig {
     }
 
     // Return default configuration
+    console.log(chalk.blue("Using default configuration."));
     return {
         targetDirectory: "./src/libs/crypto-icons",
     };
