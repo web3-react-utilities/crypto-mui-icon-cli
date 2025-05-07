@@ -409,30 +409,52 @@ export async function removeTokenMapping(filePath: string, token: string): Promi
     try {
         let content = await fs.readFile(filePath, "utf-8");
 
-        // Remove import statement
-        const importRegex = new RegExp(`import \\{ Icon${token} \\} from '\\.\\./tokens/Icon${token}';\\n`, "g");
-        content = content.replace(importRegex, "");
+        // First handle the imports section
+        // Extract all imports
+        const importsSectionRegex = /(import .*from '.*';(\n)?)+/;
+        const importsSectionMatch = content.match(importsSectionRegex);
+        if (importsSectionMatch) {
+            const importsSection = importsSectionMatch[0];
+            // Find and remove the specific import for this token
+            const importRegex = new RegExp(`import \\{ Icon${token} \\} from '\\.\\./tokens/Icon${token}';\\n?`, "g");
+            const updatedImportsSection = importsSection.replace(importRegex, "");
+            content = content.replace(importsSection, updatedImportsSection);
+        }
 
-        // Remove mapping entry
-        const mappingRegex = new RegExp(`\\s+\\[TokenName\\.${token}\\]: Icon${token},\\n`, "g");
-        content = content.replace(mappingRegex, "");
+        // Now handle the mapping entries
+        // Extract the entire mapping object
+        const mapRegex = /export const mapNameToIcon[^{]+{([^}]*)}/s;
+        const mapMatch = content.match(mapRegex);
 
-        // Fix the formatting if the closing brace is wrong
-        const mapObjectRegex = /(export const mapNameToIcon[^{]+\{[^}]*\})/s;
-        const mapObjectMatch = content.match(mapObjectRegex);
+        if (mapMatch) {
+            // Get the existing mapping entries
+            const mapContent = mapMatch[1];
+            // Split by lines and filter out the entry being removed
+            const entries = mapContent
+                .split("\n")
+                .map((line) => line.trim())
+                .filter((line) => line.length > 0 && !line.includes(`[TokenName.${token}]`));
 
-        if (mapObjectMatch) {
-            const mapObject = mapObjectMatch[0];
-            let updatedMapObject = mapObject;
+            // Sort entries alphabetically by token name
+            entries.sort((a, b) => {
+                const tokenA = a.match(/\[TokenName\.(\w+)\]/)?.[1] || "";
+                const tokenB = b.match(/\[TokenName\.(\w+)\]/)?.[1] || "";
+                return tokenA.localeCompare(tokenB);
+            });
 
-            // Fix cases where the last map entry ends with a comma and is immediately followed by closing brace
-            updatedMapObject = updatedMapObject.replace(/,(\s*)\}/s, "\n$1}");
+            // Rebuild the map with sorted entries
+            let newMapContent = "export const mapNameToIcon: Record<TokenName, SvgComponent> = {\n";
+            if (entries.length > 0) {
+                entries.forEach((entry) => {
+                    newMapContent += `${entry}\n`;
+                });
+            } else {
+                newMapContent += "  // This will be populated automatically as you add tokens\n";
+            }
+            newMapContent += "};";
 
-            // Fix cases where the empty object might have weird formatting
-            updatedMapObject = updatedMapObject.replace(/{(\s*)(\/\/[^\n]*\n\s*)?}/, "{\n$1$2\n}");
-
-            // Replace the map object with the updated one
-            content = content.replace(mapObjectRegex, updatedMapObject);
+            // Replace the map in the content
+            content = content.replace(mapRegex, newMapContent);
         }
 
         await fs.writeFile(filePath, content);
