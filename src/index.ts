@@ -5,11 +5,17 @@ import chalk from "chalk";
 import { addCommand } from "./commands/add";
 import { initCommand } from "./commands/init";
 import { removeCommand } from "./commands/remove";
+import path from "path";
+import fs from "fs-extra";
 
 const program = new Command();
 
+// Get version from package.json
+const packageJsonPath = path.resolve(__dirname, "../package.json");
+const packageVersion = fs.existsSync(packageJsonPath) ? require(packageJsonPath).version : "1.0.0"; // Fallback version if package.json isn't found
+
 // Set up CLI information
-program.name("crypto-mui-icon-cli").description("CLI tool for adding crypto icons with MUI support to your project").version("1.2.3");
+program.name("crypto-mui-icon-cli").description("CLI tool for adding crypto icons with MUI support to your project").version(packageVersion);
 
 // Register commands
 program.command("init").description("Initialize your project with base structure for crypto icons").action(initCommand);
