@@ -1,5 +1,6 @@
 import fs from "fs-extra";
 import chalk from "chalk";
+import { specialTokens, specialWallets, specialSystems } from "./specialIcons";
 
 /**
  * Ensure the image paths file exists or create it
@@ -67,13 +68,24 @@ export async function addImagePathConstant(filePath: string, token: string): Pro
             return;
         }
 
-        // Add constant with light/dark mode URLs
-        const newConstant = `
-export const ${constantName}: IconUrls = {
+        // Check if this is a special token that needs different images for light/dark mode
+        const isSpecialToken = specialTokens.includes(token);
+
+        // Define the token definition based on whether it's special or not
+        let tokenDefinition: string;
+
+        if (isSpecialToken) {
+            tokenDefinition = `export const PNG_${token}: IconUrls = {
+  lightmode: baseImgUrlToken('${token}-lightmode'),
+  darkmode: baseImgUrlToken('${token}-darkmode'),
+};`;
+            console.log(chalk.cyan(`ℹ️ Using special light/dark mode images for token: ${token}`));
+        } else {
+            tokenDefinition = `export const PNG_${token}: IconUrls = {
   lightmode: baseImgUrlToken('${token}'),
   darkmode: baseImgUrlToken('${token}'),
-};
-`;
+};`;
+        }
 
         // Extract all image path constants - use a more inclusive regex to catch tokens with lowercase letters
         const constantRegex = /export const PNG_([A-Za-z0-9_]+): IconUrls = {[\s\S]+?};/g;
@@ -92,10 +104,7 @@ export const ${constantName}: IconUrls = {
         // Add the new constant to the list
         constants.push({
             name: token,
-            definition: `export const PNG_${token}: IconUrls = {
-  lightmode: baseImgUrlToken('${token}'),
-  darkmode: baseImgUrlToken('${token}'),
-};`,
+            definition: tokenDefinition,
         });
 
         // Sort constants alphabetically by name
@@ -115,7 +124,7 @@ export const ${constantName}: IconUrls = {
             await fs.writeFile(filePath, content);
         } else {
             // If we can't find the marker, just append
-            content += newConstant;
+            content += `\n${tokenDefinition}`;
             await fs.writeFile(filePath, content);
         }
 
@@ -134,13 +143,32 @@ export async function addWalletImagePathConstant(filePath: string, wallet: strin
         let content = await fs.readFile(filePath, "utf-8");
 
         // Define constant name
-        const constantName = `PNG_WALLET_${wallet.toUpperCase()}`;
+        const constantName = `PNG_WALLET_${wallet}`;
 
         // Check if constant already exists - use a more precise check
-        const exactConstantRegex = new RegExp(`export const PNG_WALLET_${wallet.toUpperCase()}: IconUrls`);
+        const exactConstantRegex = new RegExp(`export const PNG_WALLET_${wallet}: IconUrls`);
         if (exactConstantRegex.test(content)) {
             console.log(chalk.gray(`ℹ️ Image path constant for wallet ${wallet} already exists, skipping`));
             return;
+        }
+
+        // Check if this is a special wallet that needs different images for light/dark mode
+        const isSpecialWallet = specialWallets.includes(wallet.toUpperCase());
+
+        // Define the wallet definition based on whether it's special or not
+        let walletDefinition: string;
+
+        if (isSpecialWallet) {
+            walletDefinition = `export const PNG_WALLET_${wallet}: IconUrls = {
+  lightmode: baseImgUrlWallet('${wallet}-lightmode'),
+  darkmode: baseImgUrlWallet('${wallet}-darkmode'),
+};`;
+            console.log(chalk.cyan(`ℹ️ Using special light/dark mode images for wallet: ${wallet}`));
+        } else {
+            walletDefinition = `export const PNG_WALLET_${wallet}: IconUrls = {
+  lightmode: baseImgUrlWallet('${wallet}'),
+  darkmode: baseImgUrlWallet('${wallet}'),
+};`;
         }
 
         // Extract all wallet image path constants - update regex to include all possible characters
@@ -157,11 +185,8 @@ export async function addWalletImagePathConstant(filePath: string, wallet: strin
 
         // Add the new constant to the list
         constants.push({
-            name: wallet.toUpperCase(),
-            definition: `export const PNG_WALLET_${wallet.toUpperCase()}: IconUrls = {
-  lightmode: baseImgUrlWallet('${wallet.toLowerCase()}'),
-  darkmode: baseImgUrlWallet('${wallet.toLowerCase()}'),
-};`,
+            name: wallet,
+            definition: walletDefinition,
         });
 
         // Sort constants alphabetically by name
@@ -217,13 +242,32 @@ export async function addSystemImagePathConstant(filePath: string, system: strin
         let content = await fs.readFile(filePath, "utf-8");
 
         // Define constant name
-        const constantName = `PNG_SYSTEM_${system.toUpperCase()}`;
+        const constantName = `PNG_SYSTEM_${system}`;
 
         // Check if constant already exists - use a more precise check
-        const exactConstantRegex = new RegExp(`export const PNG_SYSTEM_${system.toUpperCase()}: IconUrls`);
+        const exactConstantRegex = new RegExp(`export const PNG_SYSTEM_${system}: IconUrls`);
         if (exactConstantRegex.test(content)) {
             console.log(chalk.gray(`ℹ️ Image path constant for system ${system} already exists, skipping`));
             return;
+        }
+
+        // Check if this is a special system that needs different images for light/dark mode
+        const isSpecialSystem = specialSystems.includes(system.toUpperCase());
+
+        // Define the system definition based on whether it's special or not
+        let systemDefinition: string;
+
+        if (isSpecialSystem) {
+            systemDefinition = `export const PNG_SYSTEM_${system}: IconUrls = {
+  lightmode: baseImgUrlSystem('${system}-lightmode'),
+  darkmode: baseImgUrlSystem('${system}-darkmode'),
+};`;
+            console.log(chalk.cyan(`ℹ️ Using special light/dark mode images for system: ${system}`));
+        } else {
+            systemDefinition = `export const PNG_SYSTEM_${system}: IconUrls = {
+  lightmode: baseImgUrlSystem('${system}'),
+  darkmode: baseImgUrlSystem('${system}'),
+};`;
         }
 
         // Extract all system image path constants - update regex to include all possible characters
@@ -240,11 +284,8 @@ export async function addSystemImagePathConstant(filePath: string, system: strin
 
         // Add the new constant to the list
         constants.push({
-            name: system.toUpperCase(),
-            definition: `export const PNG_SYSTEM_${system.toUpperCase()}: IconUrls = {
-  lightmode: baseImgUrlSystem('${system.toLowerCase()}'),
-  darkmode: baseImgUrlSystem('${system.toLowerCase()}'),
-};`,
+            name: system,
+            definition: systemDefinition,
         });
 
         // Sort constants alphabetically by name
