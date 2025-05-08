@@ -5,24 +5,13 @@ A CLI tool for managing and adding crypto token icons with MUI support to your R
 ## Installation
 
 ```bash
-# Install globally
-npm install -g crypto-mui-icon-cli
-
-# Or use directly with npx
+# Use directly with npx
 npx crypto-mui-icon-cli@latest <command>
 ```
 
 ## Updating
 
 To update the CLI tool to the latest version:
-
-```bash
-# If installed globally
-npm update -g crypto-mui-icon-cli
-
-# Or install the latest version directly
-npm install -g crypto-mui-icon-cli@latest
-```
 
 When using npx, it will automatically use the latest version, but you can force an update with:
 
@@ -34,8 +23,6 @@ npx crypto-mui-icon-cli@latest <command>
 You can check your current version:
 
 ```bash
-crypto-mui-icon-cli --version
-# or
 npx crypto-mui-icon-cli@latest --version
 ```
 
