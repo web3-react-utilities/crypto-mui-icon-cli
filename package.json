@@ -1,6 +1,6 @@
 {
     "name": "crypto-mui-icon-cli",
-    "version": "1.3.8",
+    "version": "1.4.0",
     "description": "CLI tool for adding crypto token icons with MUI support to your project",
     "main": "dist/index.js",
     "bin": {
