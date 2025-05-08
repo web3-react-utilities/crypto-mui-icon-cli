@@ -23,7 +23,7 @@
         "react",
         "svg"
     ],
-    "author": "Your Name",
+    "author": "QuyenLD",
     "license": "ISC",
     "repository": {
         "type": "git",
@@ -56,5 +56,12 @@
     ],
     "engines": {
         "node": ">=14.0.0"
-    }
+    },
+    "preferGlobal": false,
+    "preferNpx": true,
+    "publishConfig": {
+        "access": "public",
+        "registry": "https://registry.npmjs.org/"
+    },
+    "npm-run": "npx crypto-mui-icon-cli@latest init"
 }

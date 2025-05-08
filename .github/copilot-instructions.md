@@ -9,3 +9,4 @@
 -   Khi làm việc với file trong thư mục `templates`, hãy đảm bảo rằng các placeholder như `{{TOKEN_NAME}}`, `{{WALLET_NAME}}`, và `{{SYSTEM_NAME}}` được giữ nguyên vì chúng sẽ được thay thế bởi CLI tool.
 -   Khi thêm các enum trong `types/index.ts`, hãy tuân theo format hiện tại và sắp xếp theo thứ tự alphabetical.
 -   Khi làm việc với các file helper trong `utils/`, hãy đảm bảo chúng xử lý lỗi một cách phù hợp và log thông tin hữu ích cho người dùng.
+-   Trong file README.md, phần hướng dẫn cài đặt package chỉ nên hướng dẫn cách sử dụng bằng lệnh `npx` kèm với `@latest` trong mọi ví dụ câu lệnh, không nên đề xuất cài đặt toàn cục hoặc cục bộ.
