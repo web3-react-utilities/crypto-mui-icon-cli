@@ -62,7 +62,7 @@ export async function createBaseTypes(targetDir: string): Promise<void> {
 
 export type SvgComponent = React.FC<SvgIconProps>;
 
-export interface IconUrls {
+export type IconUrls = {
   lightmode: string;
   darkmode: string;
 }
