@@ -76,7 +76,7 @@ function hasLightDarkModeVariants(walletName, allFileNames) {
 }
 
 /**
- * Creates a formatted markdown table with 4 columns
+ * Creates a formatted markdown table with 6 columns
  * @param {string[]} wallets - Array of wallet names
  * @returns {string} - Markdown table
  */
@@ -86,23 +86,23 @@ function createMarkdownTable(wallets) {
 
     log(`Creating table with ${wallets.length} wallets`);
 
-    // Create groups of 4 wallets for the table
+    // Create groups of 6 wallets for the table
     const rows = [];
-    for (let i = 0; i < wallets.length; i += 4) {
-        const row = wallets.slice(i, i + 4);
-        // Pad the row to always have 4 columns
-        while (row.length < 4) {
+    for (let i = 0; i < wallets.length; i += 6) {
+        const row = wallets.slice(i, i + 6);
+        // Pad the row to always have 6 columns
+        while (row.length < 6) {
             row.push("");
         }
         rows.push(row);
     }
 
     // Create the table markdown
-    let tableMarkdown = "|       |       |       |       |\n";
-    tableMarkdown += "| :---: | :---: | :---: | :---: |\n";
+    let tableMarkdown = "|       |       |       |       |       |       |\n";
+    tableMarkdown += "| :---: | :---: | :---: | :---: | :---: | :---: |\n";
 
     rows.forEach((row) => {
-        tableMarkdown += `| ${row[0]} | ${row[1]} | ${row[2]} | ${row[3]} |\n`;
+        tableMarkdown += `| ${row[0]} | ${row[1]} | ${row[2]} | ${row[3]} | ${row[4]} | ${row[5]} |\n`;
     });
 
     return tableMarkdown;
