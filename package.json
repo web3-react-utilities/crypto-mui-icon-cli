@@ -47,6 +47,8 @@
         "@types/fs-extra": "^11.0.4",
         "@types/inquirer": "^8.2.10",
         "@types/node": "^20.11.24",
+        "firebase": "^11.7.1",
+        "firebase-admin": "^13.3.0",
         "ts-node": "^10.9.2",
         "typescript": "^5.3.3"
     },

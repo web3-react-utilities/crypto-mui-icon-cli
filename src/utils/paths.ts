@@ -153,7 +153,7 @@ export async function addWalletImagePathConstant(filePath: string, wallet: strin
         }
 
         // Check if this is a special wallet that needs different images for light/dark mode
-        const isSpecialWallet = specialWallets.includes(wallet.toUpperCase());
+        const isSpecialWallet = specialWallets.includes(wallet);
 
         // Define the wallet definition based on whether it's special or not
         let walletDefinition: string;
@@ -252,7 +252,7 @@ export async function addSystemImagePathConstant(filePath: string, system: strin
         }
 
         // Check if this is a special system that needs different images for light/dark mode
-        const isSpecialSystem = specialSystems.includes(system.toUpperCase());
+        const isSpecialSystem = specialSystems.includes(system);
 
         // Define the system definition based on whether it's special or not
         let systemDefinition: string;

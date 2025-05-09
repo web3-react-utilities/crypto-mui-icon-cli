@@ -52,3 +52,6 @@ logs
 *.tmp
 *.temp
 .cache/
+
+# Scripts directory
+scripts/*.json

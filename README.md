@@ -166,3 +166,13 @@ Contributions are always welcome! Please create an issue or pull request if you 
 ## License
 
 ISC
+
+## Supported Icons
+
+This package supports various cryptocurrency tokens, wallets, and systems. For a complete list of supported icons, please refer to the following documentation:
+
+-   [Supported Tokens](./TOKENS.md)
+-   [Supported Wallets](./WALLETS.md)
+-   [Supported Systems](./SYSTEMS.md)
+
+These lists contain all available icons that can be used with the `add` command.

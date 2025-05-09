@@ -13,3 +13,91 @@
 -   Khi làm việc với các loại type nên dùng khai báo "type" không dùng "interface".
 -   Khi được yêu cầu thêm "token đặc biệt" (ví dụ: "thêm token đặc biệt A, B, C"), hãy tự động thêm vào mảng `specialTokens` trong file `utils/specialIcons.ts` để các token này sẽ sử dụng hậu tố `-lightmode` và `-darkmode` cho các ảnh tương ứng.
 -   Tương tự, khi được yêu cầu thêm "wallet đặc biệt" hoặc "system đặc biệt", hãy tự động thêm vào mảng tương ứng `specialWallets` hoặc `specialSystems` trong file `utils/specialIcons.ts`.
+-   Khi cập nhật hoặc tạo mới danh sách tokens, wallets, hoặc systems trong các file tài liệu (TOKENS.md, WALLETS.md, SYSTEMS.md), hãy tuân theo mẫu định dạng bảng dưới đây:
+    ```markdown
+    |       |       |       |       |
+    | :---: | :---: | :---: | :---: |
+    | Item1 | Item2 | Item3 | Item4 |
+    | Item5 | Item6 | Item7 | Item8 |
+    ```
+-   Khi thêm mới các token, wallet, hoặc system vào danh sách, luôn đảm bảo rằng danh sách cuối cùng được sắp xếp theo thứ tự alphabet (A-Z).
+-   Luôn dùng định dạng bảng với 4 cột trong các file tài liệu để hiển thị danh sách tokens, wallets và systems để đảm bảo sự nhất quán và dễ đọc.
+-   Khi thêm key token vào file README.md hoặc các file tài liệu khác, luôn giữ định dạng bảng giống như các file hiện có và đảm bảo các key token được sắp xếp theo thứ tự alphét từ A đến Z.
+-   Khi người dùng yêu cầu "thêm key token [TÊN TOKEN]", "thêm key system [TÊN SYSTEM]", hoặc "thêm key wallet [TÊN WALLET]":
+    1. Cập nhật file tương ứng (TOKENS.md, SYSTEMS.md, hoặc WALLETS.md)
+    2. Thêm key mới theo đúng vị trí alphabet trong bảng 4 cột hiện có
+    3. Giữ nguyên định dạng bảng hiện tại, chỉ thay đổi nội dung
+    4. Sau khi cập nhật, kiểm tra lại xem bảng có cân đối không (mỗi hàng đủ 4 cột)
+-   **Quan trọng**: Khi cập nhật token/system/wallet, luôn đảm bảo cập nhật đồng thời cả hai nơi:
+    1. Cập nhật file tài liệu tương ứng (TOKENS.md, SYSTEMS.md, WALLETS.md) với danh sách mới
+    2. Cập nhật mảng tương ứng trong file `src/utils/specialIcons.ts` (`specialTokens`, `specialSystems`, `specialWallets`) nếu token/system/wallet có phiên bản light/dark mode
+    3. Việc cập nhật cả hai nơi giúp đảm bảo tính nhất quán giữa tài liệu và mã nguồn
+    4. Nếu một token/system/wallet có cả hai file ảnh với hậu tố `-lightmode` và `-darkmode`, thì đó là token/system/wallet đặc biệt và cần được thêm vào mảng tương ứng trong `specialIcons.ts`
+
+## Thông tin về thư mục scripts
+
+Thư mục `scripts` chứa các scripts hỗ trợ không được commit vào repository. Dưới đây là thông tin về các scripts quan trọng và cách tái tạo khi cần:
+
+### copy-templates.js
+
+Script này chạy sau khi build để sao chép các template files vào thư mục dist:
+
+```javascript
+const fs = require("fs-extra");
+const path = require("path");
+
+// Đường dẫn
+const srcTemplatesDir = path.join(__dirname, "..", "src", "templates");
+const distTemplatesDir = path.join(__dirname, "..", "dist", "templates");
+
+// Sao chép templates
+async function copyTemplates() {
+    try {
+        await fs.copy(srcTemplatesDir, distTemplatesDir);
+        console.log("Templates copied successfully to dist folder");
+    } catch (err) {
+        console.error("Error copying templates:", err);
+        process.exit(1);
+    }
+}
+
+copyTemplates();
+```
+
+### firebase-token-list.js
+
+Script để lấy danh sách tokens từ Firebase Storage và cập nhật vào TOKENS.md:
+
+```javascript
+const admin = require("firebase-admin");
+const fs = require("fs-extra");
+const path = require("path");
+
+// Kết nối Firebase Admin SDK
+const serviceAccountPath = path.join(__dirname, "..", "crypto-images-4545f-firebase-adminsdk-fbsvc-4e7b983716.json");
+const serviceAccount = require(serviceAccountPath);
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    storageBucket: "crypto-images-token" // Token bucket name
+});
+
+// Functions to extract token names, check for special tokens, and update markdown
+function extractTokenName(filePath) {
+    const fileName = path.basename(filePath);
+    const lightDarkModeMatch = fileName.match(/^([A-Z0-9]+)-(?:lightmode|darkmode)\.png$/);
+    if (lightDarkModeMatch) return lightDarkModeMatch[1];
+    
+    const regularTokenMatch = fileName.match(/^([A-Z0-9]+)\.png$/);
+    if (regularTokenMatch) return regularTokenMatch[1];
+    
+    return null;
+}
+
+// Script tự động phân tích tokens trong Firebase Storage và cập nhật cả hai nơi:
+// 1. Cập nhật TOKENS.md với danh sách token trong bảng 4 cột
+// 2. Cập nhật mảng specialTokens trong file src/utils/specialIcons.ts với các token có phiên bản light/dark mode
+```
+
+Script tương tự cũng được tạo cho systems (`firebase-system-list.js`) và wallets (`firebase-wallet-list.js`) để đồng bộ dữ liệu từ Firebase Storage buckets tương ứng (`crypto-images-system` và `crypto-images-wallet`).
+
+Lưu ý rằng thư mục `scripts` đã được thêm vào `.gitignore` và sẽ không được commit. Khi cần, có thể tái tạo các scripts này dựa trên hướng dẫn trên.
