@@ -2,7 +2,7 @@
 
 A CLI tool for managing and adding crypto token icons with MUI support to your React project. This tool helps you add only the icons you need, instead of importing the entire heavy icon library.
 
-## Installation
+## ♻️ Installation
 
 ```bash
 # Use with npx (no installation needed)
@@ -20,7 +20,7 @@ This package supports various cryptocurrency tokens, wallets, and systems. For a
 Each link above contains the full catalog of available icons that can be used with the `add` command.
 ✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨
 
-## Updating
+## ⬆️ Updating
 
 When using npx with @latest, it will automatically use the latest version, but you can force an update with:
 
@@ -35,7 +35,7 @@ You can check your current version:
 npx crypto-mui-icon-cli@latest --version
 ```
 
-## Usage
+## 🚀 Usage
 
 ### Initialize Basic Structure
 
@@ -58,7 +58,7 @@ This command will create the basic folder structure for crypto icons:
         /constants    # Constant values
 ```
 
-### Adding Icons
+### ➕ Adding Icons
 
 ```bash
 # Add one or more token icons
@@ -79,7 +79,7 @@ npx crypto-mui-icon-cli@latest add --token BTC --dir ./src/assets/crypto
 
 If no options are specified, the tool will display an interactive menu for you to choose from.
 
-### Removing Icons
+### ⛔ Removing Icons
 
 ```bash
 # Remove one or more token icons
