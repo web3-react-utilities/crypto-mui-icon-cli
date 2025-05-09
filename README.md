@@ -9,6 +9,17 @@ A CLI tool for managing and adding crypto token icons with MUI support to your R
 npx crypto-mui-icon-cli@latest <command>
 ```
 
+## Supported Icons ✨✨✨✨✨✨✨✨✨✨
+
+This package supports various cryptocurrency tokens, wallets, and systems. For a complete list of supported icons, please refer to the following documentation:
+
+-   [**Supported Tokens**](./TOKENS.md) - Bitcoin, Ethereum, Solana, and more
+-   [**Supported Wallets**](./WALLETS.md) - MetaMask, WalletConnect, and others
+-   [**Supported Systems**](./SYSTEMS.md) - Blockchain platforms and services
+
+Each link above contains the full catalog of available icons that can be used with the `add` command.
+✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨
+
 ## Updating
 
 When using npx with @latest, it will automatically use the latest version, but you can force an update with:
@@ -166,13 +177,3 @@ Contributions are always welcome! Please create an issue or pull request if you 
 ## License
 
 ISC
-
-## Supported Icons
-
-This package supports various cryptocurrency tokens, wallets, and systems. For a complete list of supported icons, please refer to the following documentation:
-
--   [Supported Tokens](./TOKENS.md)
--   [Supported Wallets](./WALLETS.md)
--   [Supported Systems](./SYSTEMS.md)
-
-These lists contain all available icons that can be used with the `add` command.
