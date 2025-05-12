@@ -84,10 +84,13 @@ admin.initializeApp({
 // Functions to extract token names, check for special tokens, and update markdown
 function extractTokenName(filePath) {
     const fileName = path.basename(filePath);
-    const lightDarkModeMatch = fileName.match(/^([A-Z0-9]+)-(?:lightmode|darkmode)\.png$/);
+    
+    // Support mixed-case token names with possible dashes (e.g., "stOSMO-lightmode.png", "UST-WORMHOLE-darkmode.png")
+    const lightDarkModeMatch = fileName.match(/^([a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*)-(?:lightmode|darkmode)\.png$/);
     if (lightDarkModeMatch) return lightDarkModeMatch[1];
 
-    const regularTokenMatch = fileName.match(/^([A-Z0-9]+)\.png$/);
+    // Support mixed-case token names with possible dashes (e.g., "stOSMO.png", "UST-WORMHOLE.png")  
+    const regularTokenMatch = fileName.match(/^([a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*)\.png$/);
     if (regularTokenMatch) return regularTokenMatch[1];
 
     return null;
@@ -96,8 +99,82 @@ function extractTokenName(filePath) {
 // Script tự động phân tích tokens trong Firebase Storage và cập nhật cả hai nơi:
 // 1. Cập nhật TOKENS.md với danh sách token trong bảng 6 cột
 // 2. Cập nhật mảng specialTokens trong file src/utils/specialIcons.ts với các token có phiên bản light/dark mode
+
+// Hàm kiểm tra xem token có phiên bản light/dark mode không
+function hasLightDarkModeVariants(tokenName, allFileNames) {
+    // Escape special characters in token name for regex pattern matching
+    const escapedTokenName = tokenName.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    
+    const lightModePattern = new RegExp(`^${escapedTokenName}-lightmode\\.png$`, "i");
+    const darkModePattern = new RegExp(`^${escapedTokenName}-darkmode\\.png$`, "i");
+
+    return allFileNames.some(name => lightModePattern.test(name)) && 
+           allFileNames.some(name => darkModePattern.test(name));
+}
 ```
 
 Script tương tự cũng được tạo cho systems (`firebase-system-list.js`) và wallets (`firebase-wallet-list.js`) để đồng bộ dữ liệu từ Firebase Storage buckets tương ứng (`crypto-images-system` và `crypto-images-wallet`).
 
+```javascript
+// System extraction pattern (supporting mixed case and dashes in names)
+function extractSystemName(filePath) {
+    const fileName = path.basename(filePath);
+    
+    // Support for system names with dashes (e.g., "Terra-Classic-lightmode.png")
+    const lightDarkModeMatch = fileName.match(/^([a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*)-(?:lightmode|darkmode)\.png$/);
+    if (lightDarkModeMatch) return lightDarkModeMatch[1];
+
+    // Support for system names with dashes (e.g., "Terra-Classic.png")
+    const regularSystemMatch = fileName.match(/^([a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*)\.png$/);
+    if (regularSystemMatch) return regularSystemMatch[1];
+
+    return null;
+}
+
+// Wallet extraction pattern (supporting mixed case and dashes in names)
+function extractWalletName(filePath) {
+    const fileName = path.basename(filePath);
+    
+    // Support for wallet names with dashes (e.g., "Trust-Wallet-lightmode.png")
+    const lightDarkModeMatch = fileName.match(/^([a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*)-(?:lightmode|darkmode)\.png$/);
+    if (lightDarkModeMatch) return lightDarkModeMatch[1];
+
+    // Support for wallet names with dashes (e.g., "Trust-Wallet.png")
+    const regularWalletMatch = fileName.match(/^([a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*)\.png$/);
+    if (regularWalletMatch) return regularWalletMatch[1];
+
+    return null;
+}
+```
+
 Lưu ý rằng thư mục `scripts` đã được thêm vào `.gitignore` và sẽ không được commit. Khi cần, có thể tái tạo các scripts này dựa trên hướng dẫn trên.
+
+### Cách sử dụng scripts Firebase
+
+Các scripts Firebase được thiết kế để tự động hóa quy trình cập nhật danh sách tokens, systems và wallets:
+
+1. Các scripts sẽ kết nối đến Firebase Storage sử dụng service account
+2. Lấy danh sách tất cả các file ảnh và phân tích tên file để trích xuất tên token/system/wallet
+3. Tự động xác định các token/system/wallet đặc biệt có phiên bản lightmode/darkmode
+4. Cập nhật file tài liệu tương ứng (TOKENS.md, SYSTEMS.md, WALLETS.md) với bảng 6 cột
+5. Cập nhật mảng tương ứng trong file specialIcons.ts
+
+Để chạy scripts (ví dụ):
+```bash
+node scripts/firebase-token-list.js  # Cập nhật danh sách tokens
+node scripts/firebase-system-list.js # Cập nhật danh sách systems
+node scripts/firebase-wallet-list.js # Cập nhật danh sách wallets
+```
+
+### Quy ước đặt tên file ảnh
+
+Các file ảnh trong Firebase Storage tuân theo quy ước đặt tên sau:
+
+1. **File ảnh thông thường**: `[TÊN].png` - ví dụ: `BTC.png`, `MetaMask.png`, `Ethereum.png`
+2. **File ảnh cho light mode**: `[TÊN]-lightmode.png` - ví dụ: `BTC-lightmode.png`
+3. **File ảnh cho dark mode**: `[TÊN]-darkmode.png` - ví dụ: `BTC-darkmode.png`
+
+Với `[TÊN]` có thể chứa:
+- Các chữ cái viết hoa và viết thường (a-z, A-Z)
+- Các chữ số (0-9)
+- Dấu gạch ngang (-) để ngăn cách các từ trong tên (ví dụ: `UST-WORMHOLE`, `Terra-Classic`, `Trust-Wallet`)

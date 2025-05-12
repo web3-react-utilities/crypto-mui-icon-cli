@@ -38,14 +38,15 @@ function extractTokenName(filePath) {
     log(`Processing file: ${fileName}`);
 
     // Extract token name based on file naming pattern
-    // Case 1: Token with lightmode/darkmode variants (e.g., "ALGO-lightmode.png" or "ALGO-darkmode.png")
-    const lightDarkModeMatch = fileName.match(/^([A-Z0-9]+)-(?:lightmode|darkmode)\.png$/);
+
+    // Case 1: Token with lightmode/darkmode variants (e.g., "ALGO-lightmode.png", "stOSMO-darkmode.png", "wstUSDT-lightmode.png", "UST-WORMHOLE-lightmode.png")
+    const lightDarkModeMatch = fileName.match(/^([a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*)-(?:lightmode|darkmode)\.png$/);
     if (lightDarkModeMatch) {
         return lightDarkModeMatch[1]; // Return just the token name part
     }
 
-    // Case 2: Regular token (e.g., "AAVE.png")
-    const regularTokenMatch = fileName.match(/^([A-Z0-9]+)\.png$/);
+    // Case 2: Regular token (e.g., "AAVE.png", "stOSMO.png", "aUSDT.png", "UST-WORMHOLE.png")
+    const regularTokenMatch = fileName.match(/^([a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*)\.png$/);
     if (regularTokenMatch) {
         return regularTokenMatch[1];
     }
@@ -62,8 +63,11 @@ function extractTokenName(filePath) {
  * @returns {boolean} - Whether the token has light/dark variants
  */
 function hasLightDarkModeVariants(tokenName, allFileNames) {
-    const lightModePattern = new RegExp(`^${tokenName}-lightmode\\.png$`);
-    const darkModePattern = new RegExp(`^${tokenName}-darkmode\\.png$`);
+    // Need to escape special characters in the token name for regex
+    const escapedTokenName = tokenName.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+
+    const lightModePattern = new RegExp(`^${escapedTokenName}-lightmode\\.png$`, "i");
+    const darkModePattern = new RegExp(`^${escapedTokenName}-darkmode\\.png$`, "i");
 
     const hasLightMode = allFileNames.some((name) => lightModePattern.test(name));
     const hasDarkMode = allFileNames.some((name) => darkModePattern.test(name));
@@ -115,46 +119,47 @@ function createMarkdownTable(tokens) {
  */
 async function updateTokensFile(tableContent, specialTokens) {
     try {
-        log('Reading TOKENS.md file...');
+        log("Reading TOKENS.md file...");
         // Read the current content of TOKENS.md
-        const content = await fs.readFile(TOKENS_FILE_PATH, 'utf8');
-        
+        const content = await fs.readFile(TOKENS_FILE_PATH, "utf8");
+
         // Create the special tokens note
-        const specialTokensNote = specialTokens.length > 0 
-          ? `> **Note**: The following tokens have different images for light and dark mode: ${specialTokens.join(', ')}.`
-          : '> **Note**: No tokens currently have special light/dark mode variants.';
-        
-        log('Updating table in TOKENS.md...');
-        
+        const specialTokensNote =
+            specialTokens.length > 0
+                ? `> **Note**: The following tokens have different images for light and dark mode: ${specialTokens.join(", ")}.`
+                : "> **Note**: No tokens currently have special light/dark mode variants.";
+
+        log("Updating table in TOKENS.md...");
+
         // Find the position of the table in the file
-        const tableStartPos = content.indexOf('## Available Tokens');
-        const tableEndPos = content.indexOf('>', tableStartPos);
-        
+        const tableStartPos = content.indexOf("## Available Tokens");
+        const tableEndPos = content.indexOf(">", tableStartPos);
+
         if (tableStartPos === -1 || tableEndPos === -1) {
-          log('Could not find the table section in TOKENS.md', true);
-          return;
+            log("Could not find the table section in TOKENS.md", true);
+            return;
         }
-        
+
         // Create the new content by replacing the old table
         const beforeTable = content.substring(0, tableStartPos);
         const afterTable = content.substring(tableEndPos);
-        
+
         const newTableSection = `## Available Tokens
 
 Below is the complete list of all available token icons:
 
 ${tableContent}
 `;
-        
+
         // Combine everything
         const updatedContent = beforeTable + newTableSection + afterTable;
-        
+
         // Write the updated content back to the file
-        await fs.writeFile(TOKENS_FILE_PATH, updatedContent, 'utf8');
-        log('TOKENS.md has been updated successfully!');
-        
+        await fs.writeFile(TOKENS_FILE_PATH, updatedContent, "utf8");
+        log("TOKENS.md has been updated successfully!");
+
         // Log the first few tokens to verify
-        const tokenSample = [...specialTokens].slice(0, 5).join(', ');
+        const tokenSample = [...specialTokens].slice(0, 5).join(", ");
         log(`Sample of tokens in the updated file: ${tokenSample}...`);
     } catch (error) {
         log(`Error updating TOKENS.md: ${error.message}`, true);
@@ -168,30 +173,33 @@ ${tableContent}
  */
 async function updateSpecialIconsFile(specialTokens) {
     try {
-        log('Reading specialIcons.ts file...');
-        const content = await fs.readFile(SPECIAL_ICONS_PATH, 'utf8');
-        
-        log('Updating specialTokens in specialIcons.ts...');
-        
+        log("Reading specialIcons.ts file...");
+        const content = await fs.readFile(SPECIAL_ICONS_PATH, "utf8");
+
+        log("Updating specialTokens in specialIcons.ts...");
+
         // Format the tokens array with 5 tokens per line for better readability
         const formattedTokensArray = [];
         for (let i = 0; i < specialTokens.length; i += 5) {
-            const line = specialTokens.slice(i, i + 5).map(token => `"${token}"`).join(", ");
+            const line = specialTokens
+                .slice(i, i + 5)
+                .map((token) => `"${token}"`)
+                .join(", ");
             formattedTokensArray.push(line);
         }
-        
+
         const tokensArrayString = formattedTokensArray.join(",\n  ");
-        
+
         // Create the new specialTokens array content
         const newSpecialTokens = `export const specialTokens: string[] = [\n  ${tokensArrayString}\n];`;
-        
+
         // Replace the existing specialTokens array using regex
         const specialTokensRegex = /export const specialTokens: string\[\] = \[([\s\S]*?)\];/;
         const updatedContent = content.replace(specialTokensRegex, newSpecialTokens);
-        
+
         // Write the updated content back to the file
-        await fs.writeFile(SPECIAL_ICONS_PATH, updatedContent, 'utf8');
-        log('specialIcons.ts has been updated successfully!');
+        await fs.writeFile(SPECIAL_ICONS_PATH, updatedContent, "utf8");
+        log("specialIcons.ts has been updated successfully!");
     } catch (error) {
         log(`Error updating specialIcons.ts: ${error.message}`, true);
         console.error(error);
@@ -234,7 +242,6 @@ async function fetchAndUpdateTokens() {
 
         // Get all file names for checking light/dark mode variants
         const allFileNames = files.map((file) => path.basename(file.name));
-
         // Extract unique token names
         const uniqueTokens = new Set();
         files.forEach((file) => {
@@ -255,10 +262,10 @@ async function fetchAndUpdateTokens() {
 
         // Update the TOKENS.md file with the table and special tokens note
         await updateTokensFile(tableContent, specialTokens);
-        
+
         // Update the specialIcons.ts file with the special tokens list
         await updateSpecialIconsFile(specialTokens);
-        
+
         log("Both TOKENS.md and specialIcons.ts files have been updated successfully!");
     } catch (error) {
         log(`Error in fetchAndUpdateTokens: ${error.message}`, true);
