@@ -111,20 +111,37 @@ export async function addImagePathConstant(filePath: string, token: string): Pro
         constants.sort((a, b) => a.name.localeCompare(b.name));
 
         // Debugging: Log all constants we're about to write
-        console.log(chalk.gray(`ℹ️ Adding new token ${token} to constants (Total: ${constants.length})`));
+        console.log(chalk.gray(`ℹ️ Adding new token ${token} to constants (Total: ${constants.length})`));        // Find the position where constants start
+        const tokenSection = content.indexOf("// Token image paths");
+        if (tokenSection > 0) {
+            // Find the end of the token section by looking for the next section
+            let endOfTokenSection = content.length;
+            
+            // Look for possible next sections
+            const possibleNextSections = [
+                "// Wallet image paths", 
+                "// System image paths",
+                "/**",
+                "import"
+            ];
+            
+            for (const nextSection of possibleNextSections) {
+                const nextSectionPos = content.indexOf(nextSection, tokenSection + "// Token image paths".length);
+                if (nextSectionPos > -1 && nextSectionPos < endOfTokenSection) {
+                    endOfTokenSection = nextSectionPos;
+                }
+            }
+            
+            // Keep the part before constants, then add the sorted constants with a newline at the end
+            const beforeConstants = content.slice(0, tokenSection);
+            const afterConstants = content.slice(endOfTokenSection);
+            const sortedDefinitions = "// Token image paths" + constants.map((c) => `\n${c.definition}`).join("\n") + "\n";
 
-        // Find the position where constants start
-        const insertPos = content.indexOf("// Token image paths");
-        if (insertPos > 0) {
-            // Keep the part before constants, then add the sorted constants
-            const beforeConstants = content.slice(0, insertPos + "// Token image paths".length);
-            const sortedDefinitions = constants.map((c) => `\n${c.definition}`).join("\n");
-
-            content = beforeConstants + sortedDefinitions;
+            content = beforeConstants + sortedDefinitions + afterConstants;
             await fs.writeFile(filePath, content);
         } else {
             // If we can't find the marker, just append
-            content += `\n${tokenDefinition}`;
+            content += `\n// Token image paths\n${tokenDefinition}\n`;
             await fs.writeFile(filePath, content);
         }
 
@@ -193,20 +210,37 @@ export async function addWalletImagePathConstant(filePath: string, wallet: strin
         constants.sort((a, b) => a.name.localeCompare(b.name));
 
         // Debugging: Log all constants we're about to write
-        console.log(chalk.gray(`ℹ️ Adding new wallet ${wallet} to constants (Total: ${constants.length})`));
-
-        // Find where wallet constants section is or should be
+        console.log(chalk.gray(`ℹ️ Adding new wallet ${wallet} to constants (Total: ${constants.length})`));        // Find where wallet constants section is or should be
         const tokenSection = content.lastIndexOf("// Token image paths");
         const walletSection = content.lastIndexOf("// Wallet image paths");
         const systemSection = content.lastIndexOf("// System image paths");
 
-        let insertPos;
-
         if (walletSection > -1) {
+            // Find the end of the wallet section by looking for the next section
+            let endOfWalletSection = content.length;
+            
+            // Find next section if any
+            if (systemSection > walletSection) {
+                endOfWalletSection = systemSection;
+            } else {
+                // Look for other possible next sections if system section is not after wallet
+                const possibleNextSections = [
+                    "// Token image paths", // In case token section comes after wallet
+                    "/**",
+                    "import"
+                ];
+                
+                for (const nextSection of possibleNextSections) {
+                    const nextSectionPos = content.indexOf(nextSection, walletSection + "// Wallet image paths".length);
+                    if (nextSectionPos > -1 && nextSectionPos < endOfWalletSection) {
+                        endOfWalletSection = nextSectionPos;
+                    }
+                }
+            }
+            
             // If wallet section exists, replace it
-            const nextSection = systemSection > walletSection ? systemSection : content.length;
             const beforeSection = content.slice(0, walletSection);
-            const afterSection = content.slice(nextSection);
+            const afterSection = content.slice(endOfWalletSection);
 
             const walletSectionContent = "// Wallet image paths" + constants.map((c) => `\n${c.definition}`).join("\n") + "\n";
 
@@ -221,7 +255,7 @@ export async function addWalletImagePathConstant(filePath: string, wallet: strin
             content = beforeSection + walletSectionContent + afterSection;
         } else {
             // Just append at the end
-            const walletSectionContent = "\n// Wallet image paths" + constants.map((c) => `\n${c.definition}`).join("\n");
+            const walletSectionContent = "\n// Wallet image paths" + constants.map((c) => `\n${c.definition}`).join("\n") + "\n";
 
             content += walletSectionContent;
         }
@@ -292,22 +326,38 @@ export async function addSystemImagePathConstant(filePath: string, system: strin
         constants.sort((a, b) => a.name.localeCompare(b.name));
 
         // Debugging: Log all constants we're about to write
-        console.log(chalk.gray(`ℹ️ Adding new system ${system} to constants (Total: ${constants.length})`));
-
-        // Find where system constants section is or should be
+        console.log(chalk.gray(`ℹ️ Adding new system ${system} to constants (Total: ${constants.length})`));        // Find where system constants section is or should be
         const systemSection = content.lastIndexOf("// System image paths");
 
         if (systemSection > -1) {
-            // If system section exists, replace it
+            // Find the end of the system section by looking for the next section or the end of the file
+            let endOfSystemSection = content.length;
+            
+            // Look for possible next sections
+            const possibleNextSections = [
+                "// Token image paths", 
+                "// Wallet image paths",
+                "/**",
+                "import"
+            ];
+            
+            for (const nextSection of possibleNextSections) {
+                const nextSectionPos = content.indexOf(nextSection, systemSection + "// System image paths".length);
+                if (nextSectionPos > -1 && nextSectionPos < endOfSystemSection) {
+                    endOfSystemSection = nextSectionPos;
+                }
+            }
+            
+            // If system section exists, replace it completely
             const beforeSection = content.slice(0, systemSection);
-            const afterSection = content.slice(systemSection + "// System image paths".length);
+            const afterSection = content.slice(endOfSystemSection);
 
-            const systemSectionContent = "// System image paths" + constants.map((c) => `\n${c.definition}`).join("\n");
+            const systemSectionContent = "// System image paths" + constants.map((c) => `\n${c.definition}`).join("\n") + "\n";
 
             content = beforeSection + systemSectionContent + afterSection;
         } else {
             // Just append at the end
-            const systemSectionContent = "\n// System image paths" + constants.map((c) => `\n${c.definition}`).join("\n");
+            const systemSectionContent = "\n// System image paths" + constants.map((c) => `\n${c.definition}`).join("\n") + "\n";
 
             content += systemSectionContent;
         }
