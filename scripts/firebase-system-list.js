@@ -78,9 +78,10 @@ function hasLightDarkModeVariants(systemName, allFileNames) {
 /**
  * Creates a formatted markdown table with 6 columns
  * @param {string[]} systems - Array of system names
+ * @param {string[]} specialSystems - Array of systems with light/dark mode variants
  * @returns {string} - Markdown table
  */
-function createMarkdownTable(systems) {
+function createMarkdownTable(systems, specialSystems) {
     // Sort systems alphabetically
     systems.sort();
 
@@ -95,14 +96,18 @@ function createMarkdownTable(systems) {
             row.push("");
         }
         rows.push(row);
-    }
-
-    // Create the table markdown
+    } // Create the table markdown
     let tableMarkdown = "|       |       |       |       |       |       |\n";
-    tableMarkdown += "| :---: | :---: | :---: | :---: | :---: | :---: |\n";
+    tableMarkdown += "| :------ | :------ | :------ | :------ | :------ | :------ |\n";
 
     rows.forEach((row) => {
-        tableMarkdown += `| ${row[0]} | ${row[1]} | ${row[2]} | ${row[3]} | ${row[4]} | ${row[5]} |\n`;
+        const formattedRow = row.map((system) => {
+            if (system && specialSystems.includes(system)) {
+                return `${system} 🌗`; // Add moon symbol to special systems
+            }
+            return system;
+        });
+        tableMarkdown += `| ${formattedRow[0]} | ${formattedRow[1]} | ${formattedRow[2]} | ${formattedRow[3]} | ${formattedRow[4]} | ${formattedRow[5]} |\n`;
     });
 
     return tableMarkdown;
@@ -117,12 +122,10 @@ async function updateSystemsFile(tableContent, specialSystems) {
     try {
         log("Reading SYSTEMS.md file...");
         // Read the current content of SYSTEMS.md
-        const content = await fs.readFile(SYSTEMS_FILE_PATH, "utf8");
-
-        // Create the special systems note
+        const content = await fs.readFile(SYSTEMS_FILE_PATH, "utf8"); // Create the special systems note
         const specialSystemsNote =
             specialSystems.length > 0
-                ? `> **Note**: The following systems have different images for light and dark mode: ${specialSystems.join(", ")}.`
+                ? `> **Note**: The systems marked with 🌗 have different images for light and dark mode.`
                 : "> **Note**: No systems currently have special light/dark mode variants.";
 
         log("Updating table in SYSTEMS.md...");
@@ -139,12 +142,13 @@ async function updateSystemsFile(tableContent, specialSystems) {
         // Create the new content by replacing the old table
         const beforeTable = content.substring(0, tableStartPos);
         const afterTable = content.substring(tableEndPos);
-
         const newTableSection = `## Available Systems
 
 Below is the complete list of all available system icons:
 
 ${tableContent}
+
+${specialSystemsNote}
 `;
 
         // Combine everything
@@ -250,12 +254,11 @@ async function fetchAndUpdateSystems() {
 
         // Identify special systems with light/dark mode variants
         const specialSystems = [...uniqueSystems].filter((system) => hasLightDarkModeVariants(system, allFileNames));
-
         log(`Found ${uniqueSystems.size} unique systems`);
         log(`Found ${specialSystems.length} systems with light/dark mode variants: ${specialSystems.join(", ")}`);
 
         // Create the markdown table
-        const tableContent = createMarkdownTable([...uniqueSystems]);
+        const tableContent = createMarkdownTable([...uniqueSystems], specialSystems);
 
         // Update the SYSTEMS.md file with the table and special systems note
         await updateSystemsFile(tableContent, specialSystems);

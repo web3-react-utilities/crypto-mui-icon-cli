@@ -82,9 +82,10 @@ function hasLightDarkModeVariants(tokenName, allFileNames) {
 /**
  * Creates a formatted markdown table with 6 columns
  * @param {string[]} tokens - Array of token names
+ * @param {string[]} specialTokens - Array of tokens with light/dark mode variants
  * @returns {string} - Markdown table
  */
-function createMarkdownTable(tokens) {
+function createMarkdownTable(tokens, specialTokens) {
     // Sort tokens alphabetically
     tokens.sort();
 
@@ -99,14 +100,18 @@ function createMarkdownTable(tokens) {
             row.push("");
         }
         rows.push(row);
-    }
-
-    // Create the table markdown
+    } // Create the table markdown
     let tableMarkdown = "|       |       |       |       |       |       |\n";
-    tableMarkdown += "| :---: | :---: | :---: | :---: | :---: | :---: |\n";
+    tableMarkdown += "| :------ | :------ | :------ | :------ | :------ | :------ |\n";
 
     rows.forEach((row) => {
-        tableMarkdown += `| ${row[0]} | ${row[1]} | ${row[2]} | ${row[3]} | ${row[4]} | ${row[5]} |\n`;
+        const formattedRow = row.map((token) => {
+            if (token && specialTokens.includes(token)) {
+                return `${token} 🌗`; // Add moon symbol to special tokens
+            }
+            return token;
+        });
+        tableMarkdown += `| ${formattedRow[0]} | ${formattedRow[1]} | ${formattedRow[2]} | ${formattedRow[3]} | ${formattedRow[4]} | ${formattedRow[5]} |\n`;
     });
 
     return tableMarkdown;
@@ -121,12 +126,10 @@ async function updateTokensFile(tableContent, specialTokens) {
     try {
         log("Reading TOKENS.md file...");
         // Read the current content of TOKENS.md
-        const content = await fs.readFile(TOKENS_FILE_PATH, "utf8");
-
-        // Create the special tokens note
+        const content = await fs.readFile(TOKENS_FILE_PATH, "utf8"); // Create the special tokens note
         const specialTokensNote =
             specialTokens.length > 0
-                ? `> **Note**: The following tokens have different images for light and dark mode: ${specialTokens.join(", ")}.`
+                ? `> **Note**: The tokens marked with 🌗 have different images for light and dark mode.`
                 : "> **Note**: No tokens currently have special light/dark mode variants.";
 
         log("Updating table in TOKENS.md...");
@@ -138,9 +141,7 @@ async function updateTokensFile(tableContent, specialTokens) {
         if (tableStartPos === -1 || tableEndPos === -1) {
             log("Could not find the table section in TOKENS.md", true);
             return;
-        }
-
-        // Create the new content by replacing the old table
+        } // Create the new content by replacing the old table
         const beforeTable = content.substring(0, tableStartPos);
         const afterTable = content.substring(tableEndPos);
 
@@ -149,6 +150,8 @@ async function updateTokensFile(tableContent, specialTokens) {
 Below is the complete list of all available token icons:
 
 ${tableContent}
+
+${specialTokensNote}
 `;
 
         // Combine everything
@@ -253,12 +256,11 @@ async function fetchAndUpdateTokens() {
 
         // Identify special tokens with light/dark mode variants
         const specialTokens = [...uniqueTokens].filter((token) => hasLightDarkModeVariants(token, allFileNames));
-
         log(`Found ${uniqueTokens.size} unique tokens`);
         log(`Found ${specialTokens.length} tokens with light/dark mode variants: ${specialTokens.join(", ")}`);
 
         // Create the markdown table
-        const tableContent = createMarkdownTable([...uniqueTokens]);
+        const tableContent = createMarkdownTable([...uniqueTokens], specialTokens);
 
         // Update the TOKENS.md file with the table and special tokens note
         await updateTokensFile(tableContent, specialTokens);

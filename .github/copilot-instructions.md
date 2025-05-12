@@ -16,7 +16,7 @@
 -   Khi cập nhật hoặc tạo mới danh sách tokens, wallets, hoặc systems trong các file tài liệu (TOKENS.md, WALLETS.md, SYSTEMS.md), hãy tuân theo mẫu định dạng bảng dưới đây:
     ```markdown
     |       |       |       |        |        |        |
-    | :---: | :---: | :---: | :----: | :----: | :----: |
+    | :------ | :------ | :------ | :------ | :------ | :------ |
     | Item1 | Item2 | Item3 | Item4  | Item5  | Item6  |
     | Item7 | Item8 | Item9 | Item10 | Item11 | Item12 |
     ```
@@ -27,12 +27,14 @@
     1. Cập nhật file tương ứng (TOKENS.md, SYSTEMS.md, hoặc WALLETS.md)
     2. Thêm key mới theo đúng vị trí alphabet trong bảng 6 cột hiện có
     3. Giữ nguyên định dạng bảng hiện tại, chỉ thay đổi nội dung
-    4. Sau khi cập nhật, kiểm tra lại xem bảng có cân đối không (mỗi hàng đủ 6 cột)
+    4. Nếu item là đặc biệt (có cả phiên bản lightmode và darkmode), thêm biểu tượng 🌗 vào bên cạnh tên (ví dụ: `BTC 🌗`)
+    5. Sau khi cập nhật, kiểm tra lại xem bảng có cân đối không (mỗi hàng đủ 6 cột)
 -   **Quan trọng**: Khi cập nhật token/system/wallet, luôn đảm bảo cập nhật đồng thời cả hai nơi:
     1. Cập nhật file tài liệu tương ứng (TOKENS.md, SYSTEMS.md, WALLETS.md) với danh sách mới
     2. Cập nhật mảng tương ứng trong file `src/utils/specialIcons.ts` (`specialTokens`, `specialSystems`, `specialWallets`) nếu token/system/wallet có phiên bản light/dark mode
     3. Việc cập nhật cả hai nơi giúp đảm bảo tính nhất quán giữa tài liệu và mã nguồn
     4. Nếu một token/system/wallet có cả hai file ảnh với hậu tố `-lightmode` và `-darkmode`, thì đó là token/system/wallet đặc biệt và cần được thêm vào mảng tương ứng trong `specialIcons.ts`
+    5. Đánh dấu các token/system/wallet đặc biệt với biểu tượng 🌗 trong tài liệu (ví dụ: `BTC 🌗`)
 
 ## Thông tin về thư mục scripts
 
@@ -99,6 +101,7 @@ function extractTokenName(filePath) {
 // Script tự động phân tích tokens trong Firebase Storage và cập nhật cả hai nơi:
 // 1. Cập nhật TOKENS.md với danh sách token trong bảng 6 cột
 // 2. Cập nhật mảng specialTokens trong file src/utils/specialIcons.ts với các token có phiên bản light/dark mode
+// 3. Đánh dấu các token có light/dark mode với biểu tượng 🌗 trong bảng
 
 // Hàm kiểm tra xem token có phiên bản light/dark mode không
 function hasLightDarkModeVariants(tokenName, allFileNames) {
@@ -157,7 +160,9 @@ Các scripts Firebase được thiết kế để tự động hóa quy trình c
 2. Lấy danh sách tất cả các file ảnh và phân tích tên file để trích xuất tên token/system/wallet
 3. Tự động xác định các token/system/wallet đặc biệt có phiên bản lightmode/darkmode
 4. Cập nhật file tài liệu tương ứng (TOKENS.md, SYSTEMS.md, WALLETS.md) với bảng 6 cột
-5. Cập nhật mảng tương ứng trong file specialIcons.ts
+5. Thêm biểu tượng 🌗 vào bên cạnh các token/system/wallet đặc biệt trong bảng
+6. Cập nhật mảng tương ứng trong file specialIcons.ts
+7. Thêm ghi chú giải thích biểu tượng 🌗 dưới bảng
 
 Để chạy scripts (ví dụ):
 ```bash

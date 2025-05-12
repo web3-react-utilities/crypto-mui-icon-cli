@@ -10,12 +10,12 @@ npx crypto-mui-icon-cli@latest add --wallet WALLET_NAME1 WALLET_NAME2
 
 Below is the complete list of all available wallet icons:
 
-|         |          |          |               |          |         |
-| :-----: | :------: | :------: | :-----------: | :------: | :-----: |
-| Bitget  |  Bybit   |  Keplr   |     Leap      | MetaMask | Owallet |
-| Phantom | Solflare | TronLink | WalletConnect |          |         |
+|         |         |          |          |               |          |
+| :------ | :------ | :------- | :------- | :------------ | :------- |
+| Bitget  | Bybit   | Keplr    | Leap     | Ledger        | MetaMask |
+| Owallet | Phantom | Solflare | TronLink | WalletConnect |          |
 
-> **Note**: Some wallet like Fox have different images for light and dark mode.
+> **Note**: No wallets currently have special light/dark mode variants.
 
 ## Using System Icons in Your Code
 

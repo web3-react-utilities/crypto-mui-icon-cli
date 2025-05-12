@@ -78,9 +78,10 @@ function hasLightDarkModeVariants(walletName, allFileNames) {
 /**
  * Creates a formatted markdown table with 6 columns
  * @param {string[]} wallets - Array of wallet names
+ * @param {string[]} specialWallets - Array of wallets with light/dark mode variants
  * @returns {string} - Markdown table
  */
-function createMarkdownTable(wallets) {
+function createMarkdownTable(wallets, specialWallets) {
     // Sort wallets alphabetically
     wallets.sort();
 
@@ -95,14 +96,18 @@ function createMarkdownTable(wallets) {
             row.push("");
         }
         rows.push(row);
-    }
-
-    // Create the table markdown
+    } // Create the table markdown
     let tableMarkdown = "|       |       |       |       |       |       |\n";
-    tableMarkdown += "| :---: | :---: | :---: | :---: | :---: | :---: |\n";
+    tableMarkdown += "| :------ | :------ | :------ | :------ | :------ | :------ |\n";
 
     rows.forEach((row) => {
-        tableMarkdown += `| ${row[0]} | ${row[1]} | ${row[2]} | ${row[3]} | ${row[4]} | ${row[5]} |\n`;
+        const formattedRow = row.map((wallet) => {
+            if (wallet && specialWallets.includes(wallet)) {
+                return `${wallet} 🌗`; // Add moon symbol to special wallets
+            }
+            return wallet;
+        });
+        tableMarkdown += `| ${formattedRow[0]} | ${formattedRow[1]} | ${formattedRow[2]} | ${formattedRow[3]} | ${formattedRow[4]} | ${formattedRow[5]} |\n`;
     });
 
     return tableMarkdown;
@@ -117,12 +122,10 @@ async function updateWalletsFile(tableContent, specialWallets) {
     try {
         log("Reading WALLETS.md file...");
         // Read the current content of WALLETS.md
-        const content = await fs.readFile(WALLETS_FILE_PATH, "utf8");
-
-        // Create the special wallets note
+        const content = await fs.readFile(WALLETS_FILE_PATH, "utf8"); // Create the special wallets note
         const specialWalletsNote =
             specialWallets.length > 0
-                ? `> **Note**: The following wallets have different images for light and dark mode: ${specialWallets.join(", ")}.`
+                ? `> **Note**: The wallets marked with 🌗 have different images for light and dark mode.`
                 : "> **Note**: No wallets currently have special light/dark mode variants.";
 
         log("Updating table in WALLETS.md...");
@@ -139,12 +142,13 @@ async function updateWalletsFile(tableContent, specialWallets) {
         // Create the new content by replacing the old table
         const beforeTable = content.substring(0, tableStartPos);
         const afterTable = content.substring(tableEndPos);
-
         const newTableSection = `## Available Wallets
 
 Below is the complete list of all available wallet icons:
 
 ${tableContent}
+
+${specialWalletsNote}
 `;
 
         // Combine everything
@@ -250,12 +254,11 @@ async function fetchAndUpdateWallets() {
 
         // Identify special wallets with light/dark mode variants
         const specialWallets = [...uniqueWallets].filter((wallet) => hasLightDarkModeVariants(wallet, allFileNames));
-
         log(`Found ${uniqueWallets.size} unique wallets`);
         log(`Found ${specialWallets.length} wallets with light/dark mode variants: ${specialWallets.join(", ")}`);
 
         // Create the markdown table
-        const tableContent = createMarkdownTable([...uniqueWallets]);
+        const tableContent = createMarkdownTable([...uniqueWallets], specialWallets);
 
         // Update the WALLETS.md file with the table and special wallets note
         await updateWalletsFile(tableContent, specialWallets);

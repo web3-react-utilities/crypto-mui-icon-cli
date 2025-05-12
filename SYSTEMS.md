@@ -10,11 +10,11 @@ npx crypto-mui-icon-cli@latest add --system SYSTEM_NAME1 SYSTEM_NAME2
 
 Below is the complete list of all available system icons:
 
-|     |      |             |        |        |     |
-| :-: | :--: | :---------: | :----: | :----: | :-: |
-| BSC | Jito | JustLendDAO | Kamino | Orchai |     |
+|     |         |                |           |           |     |
+| :-- | :------ | :------------- | :-------- | :-------- | :-- |
+| BSC | Jito 🌗 | JustLendDAO 🌗 | Kamino 🌗 | Orchai 🌗 |     |
 
-> **Note**: Some systems like Jito, JustLendDAO, Kamino, and Orchai have different images for light and dark mode.
+> **Note**: The systems marked with 🌗 have different images for light and dark mode.
 
 ## Using System Icons in Your Code
 
