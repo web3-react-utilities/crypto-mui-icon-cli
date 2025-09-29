@@ -12,10 +12,10 @@ export async function ensureImagePathsFile(filePath: string): Promise<void> {
 
 import { IconUrls } from '../types';
 
-export const baseImgUrl = 'https://firebasestorage.googleapis.com/v0/b/crypto-images';
-export const baseImgUrlToken = (nameToken: string) => \`\${baseImgUrl}-token/o/\${nameToken}.png?alt=media\`;
-export const baseImgUrlSystem = (nameSystem: string) => \`\${baseImgUrl}-system/o/\${nameSystem}.png?alt=media\`;
-export const baseImgUrlWallet = (nameWallet: string) => \`\${baseImgUrl}-wallet/o/\${nameWallet}.png?alt=media\`;
+export const baseImgUrl = 'https://crypto-images-4545f.web.app/images';
+export const baseImgUrlToken = (nameToken: string) => \`\${baseImgUrl}/token/\${nameToken}.png\`;
+export const baseImgUrlSystem = (nameSystem: string) => \`\${baseImgUrl}/system/\${nameSystem}.png\`;
+export const baseImgUrlWallet = (nameWallet: string) => \`\${baseImgUrl}/wallet/\${nameWallet}.png\`;
 
 // Token image paths
 `;
@@ -31,10 +31,10 @@ export const baseImgUrlWallet = (nameWallet: string) => \`\${baseImgUrl}-wallet/
 
             // Add base URL functions
             const baseUrlDefs = `
-export const baseImgUrl = 'https://firebasestorage.googleapis.com/v0/b/crypto-images';
-export const baseImgUrlToken = (nameToken: string) => \`\${baseImgUrl}-token/o/\${nameToken}.png?alt=media\`;
-export const baseImgUrlSystem = (nameSystem: string) => \`\${baseImgUrl}-system/o/\${nameSystem}.png?alt=media\`;
-export const baseImgUrlWallet = (nameWallet: string) => \`\${baseImgUrl}-wallet/o/\${nameWallet}.png?alt=media\`;
+export const baseImgUrl = 'https://crypto-images-4545f.web.app/images';
+export const baseImgUrlToken = (nameToken: string) => \`\${baseImgUrl}/token/\${nameToken}.png\`;
+export const baseImgUrlSystem = (nameSystem: string) => \`\${baseImgUrl}/system/\${nameSystem}.png\`;
+export const baseImgUrlWallet = (nameWallet: string) => \`\${baseImgUrl}/wallet/\${nameWallet}.png\`;
 `;
 
             // Find a good position to insert the definitions
@@ -47,6 +47,56 @@ export const baseImgUrlWallet = (nameWallet: string) => \`\${baseImgUrl}-wallet/
 
             await fs.writeFile(filePath, content);
         }
+    }
+}
+
+/**
+ * Update base image URL definitions in an existing imagePaths.ts file
+ * so that it points to Firebase Hosting instead of Firebase Storage.
+ */
+export async function updateBaseImageUrlDefinitions(filePath: string): Promise<void> {
+    try {
+        if (!(await fs.pathExists(filePath))) return;
+        let content = await fs.readFile(filePath, "utf-8");
+
+        // Replace base URL and helper functions regardless of current values
+        const baseUrlRegex = /export const baseImgUrl\s*=\s*['"][^'"]+['"];?/;
+        const tokenFnRegex = /export const baseImgUrlToken\s*=\s*\([^)]*\)\s*=>\s*`[^`]*`;/;
+        const systemFnRegex = /export const baseImgUrlSystem\s*=\s*\([^)]*\)\s*=>\s*`[^`]*`;/;
+        const walletFnRegex = /export const baseImgUrlWallet\s*=\s*\([^)]*\)\s*=>\s*`[^`]*`;/;
+
+        const desiredBase = "export const baseImgUrl = 'https://crypto-images-4545f.web.app/images';";
+        const desiredToken = "export const baseImgUrlToken = (nameToken: string) => `${baseImgUrl}/token/${nameToken}.png`;";
+        const desiredSystem = "export const baseImgUrlSystem = (nameSystem: string) => `${baseImgUrl}/system/${nameSystem}.png`;";
+        const desiredWallet = "export const baseImgUrlWallet = (nameWallet: string) => `${baseImgUrl}/wallet/${nameWallet}.png`;";
+
+        let changed = false;
+
+        if (baseUrlRegex.test(content)) {
+            content = content.replace(baseUrlRegex, desiredBase);
+            changed = true;
+        }
+        if (tokenFnRegex.test(content)) {
+            content = content.replace(tokenFnRegex, desiredToken);
+            changed = true;
+        }
+        if (systemFnRegex.test(content)) {
+            content = content.replace(systemFnRegex, desiredSystem);
+            changed = true;
+        }
+        if (walletFnRegex.test(content)) {
+            content = content.replace(walletFnRegex, desiredWallet);
+            changed = true;
+        }
+
+        if (changed) {
+            await fs.writeFile(filePath, content);
+            console.log(chalk.green("✓ Updated image base URLs to Firebase Hosting"));
+        } else {
+            console.log(chalk.gray("ℹ️ Image base URLs already up to date"));
+        }
+    } catch (error) {
+        console.error(chalk.red("❌ Error updating base image URL definitions"), error);
     }
 }
 

@@ -5,6 +5,7 @@ import chalk from "chalk";
 import { addCommand } from "./commands/add";
 import { initCommand } from "./commands/init";
 import { removeCommand } from "./commands/remove";
+import { updateCommand } from "./commands/update";
 import path from "path";
 import fs from "fs-extra";
 
@@ -38,6 +39,9 @@ program
     .option("-s, --system [systems...]", "System names to remove")
     .option("-d, --dir <directory>", "Target directory (defaults to config value)")
     .action(removeCommand);
+
+// Register update command
+program.command("update").description("Update base image URLs and related constants without reinitializing").action(updateCommand);
 
 // Display help if no arguments provided
 if (process.argv.length === 2) {
