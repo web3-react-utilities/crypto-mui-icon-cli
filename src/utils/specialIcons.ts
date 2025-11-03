@@ -7,9 +7,9 @@
 export const specialTokens: string[] = [
   "ALGO", "APT", "AR", "BTT", "BUSD",
   "COMP", "FDUSD", "FLOKI", "HBAR", "HOT",
-  "HTX", "NFT", "ORAI", "ORAIX", "SOL",
-  "TRUMP", "USDAI", "XLM", "XRP", "ZEC",
-  "ZRX"
+  "HTX", "LFG", "NFT", "ORAI", "ORAIX",
+  "RAY", "SOL", "TRUMP", "USDAI", "XLM",
+  "XRP", "ZEC", "ZRX"
 ];
 
 /**

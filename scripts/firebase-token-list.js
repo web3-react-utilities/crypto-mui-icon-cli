@@ -1,9 +1,9 @@
 /**
- * Script to fetch token names from Firebase Storage and update TOKENS.md and specialIcons.ts
+ * Script to fetch token names from GitHub repository and update TOKENS.md and specialIcons.ts
  * Run with: node scripts/firebase-token-list.js
  */
 
-const admin = require("firebase-admin");
+const https = require("https");
 const fs = require("fs-extra");
 const path = require("path");
 
@@ -11,8 +11,13 @@ const path = require("path");
 const TOKENS_FILE_PATH = path.join(__dirname, "..", "TOKENS.md");
 const SPECIAL_ICONS_PATH = path.join(__dirname, "..", "src", "utils", "specialIcons.ts");
 
-// Path to service account key file
-const serviceAccountPath = path.join(__dirname, "crypto-images-4545f-firebase-adminsdk-fbsvc-4e7b983716.json");
+// GitHub API configuration
+const GITHUB_API_URL = "https://api.github.com/repos/devopstovchain/crypto-images-backend/contents/public/images/token";
+const GITHUB_RAW_URL = "https://github.com/devopstovchain/crypto-images-backend/tree/main/public/images/token";
+
+// GitHub token from environment variable or config
+// Set via: export GITHUB_TOKEN=your_token_here
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN || "";
 
 // Setup logging for better debugging
 function log(message, isError = false) {
@@ -210,44 +215,102 @@ async function updateSpecialIconsFile(specialTokens) {
 }
 
 /**
+ * Fetches data from GitHub API
+ * @param {string} url - GitHub API URL
+ * @returns {Promise<Object>} - JSON response
+ */
+function fetchFromGitHub(url) {
+    return new Promise((resolve, reject) => {
+        const headers = {
+            "User-Agent": "crypto-icons-cli",
+            Accept: "application/vnd.github.v3+json",
+        };
+
+        // Add authorization token if provided
+        if (GITHUB_TOKEN) {
+            headers.Authorization = `Bearer ${GITHUB_TOKEN}`;
+            log("Using GitHub token for authentication");
+        } else {
+            log("Warning: No GitHub token provided. This may fail for private repositories.", true);
+            log("Set GITHUB_TOKEN environment variable to authenticate.");
+        }
+
+        const options = {
+            headers: headers,
+        };
+
+        https
+            .get(url, options, (res) => {
+                let data = "";
+
+                // Check for authentication errors
+                if (res.statusCode === 401) {
+                    reject(new Error("Authentication failed. Please check your GitHub token."));
+                    return;
+                }
+
+                if (res.statusCode === 404) {
+                    reject(new Error("Repository not found or you don't have access to it."));
+                    return;
+                }
+
+                if (res.statusCode !== 200) {
+                    reject(new Error(`GitHub API returned status code: ${res.statusCode}`));
+                    return;
+                }
+
+                res.on("data", (chunk) => {
+                    data += chunk;
+                });
+
+                res.on("end", () => {
+                    try {
+                        const parsed = JSON.parse(data);
+                        resolve(parsed);
+                    } catch (error) {
+                        reject(new Error(`Failed to parse GitHub response: ${error.message}`));
+                    }
+                });
+            })
+            .on("error", (error) => {
+                reject(new Error(`GitHub API request failed: ${error.message}`));
+            });
+    });
+}
+
+/**
  * Main function to fetch token names and update TOKENS.md and specialIcons.ts
  */
 async function fetchAndUpdateTokens() {
     try {
-        log("Initializing Firebase connection...");
-        if (!fs.existsSync(serviceAccountPath)) {
-            log(`Service account file not found at: ${serviceAccountPath}`, true);
+        log("Connecting to GitHub repository...");
+        log(`Fetching files from: ${GITHUB_API_URL}`);
+
+        // Fetch files from GitHub API
+        const files = await fetchFromGitHub(GITHUB_API_URL);
+
+        if (!Array.isArray(files)) {
+            log("Invalid response from GitHub API", true);
             return;
         }
 
-        log("Loading service account...");
-        const serviceAccount = require(serviceAccountPath);
-
-        log("Initializing Firebase Admin...");
-        admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
-            storageBucket: "crypto-images-token", // Bucket name
-        });
-
-        log("Connecting to Firebase Storage bucket...");
-        const bucket = admin.storage().bucket();
-
-        // List files in the root directory since tokens are stored at the root level
-        log("Fetching files from Firebase Storage root directory...");
-        const [files] = await bucket.getFiles();
-
-        log(`Found ${files.length} files in Firebase Storage`);
+        log(`Found ${files.length} files in GitHub repository`);
 
         if (files.length === 0) {
-            log("No files found in the bucket", true);
+            log("No files found in the repository", true);
             return;
         }
 
+        // Filter only PNG files
+        const pngFiles = files.filter((file) => file.name.endsWith(".png"));
+        log(`Found ${pngFiles.length} PNG files`);
+
         // Get all file names for checking light/dark mode variants
-        const allFileNames = files.map((file) => path.basename(file.name));
+        const allFileNames = pngFiles.map((file) => file.name);
+
         // Extract unique token names
         const uniqueTokens = new Set();
-        files.forEach((file) => {
+        pngFiles.forEach((file) => {
             const tokenName = extractTokenName(file.name);
             if (tokenName) {
                 uniqueTokens.add(tokenName);
@@ -276,7 +339,7 @@ async function fetchAndUpdateTokens() {
 }
 
 // Main execution
-log("Starting Firebase token list script...");
+log("Starting GitHub token list script...");
 try {
     fetchAndUpdateTokens()
         .then(() => {

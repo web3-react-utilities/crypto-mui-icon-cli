@@ -1,18 +1,18 @@
-/**
- * Script to copy template files to dist directory
- */
 const fs = require("fs-extra");
 const path = require("path");
 
-// Define paths
-const templatesSrcDir = path.join(__dirname, "../src/templates");
-const templatesDistDir = path.join(__dirname, "../dist/templates");
+// Copy templates to dist folder after build
+async function copyTemplates() {
+    try {
+        const srcTemplatesDir = path.join(__dirname, "..", "src", "templates");
+        const distTemplatesDir = path.join(__dirname, "..", "dist", "templates");
 
-// Ensure the destination directory exists
-fs.ensureDirSync(templatesDistDir);
+        await fs.copy(srcTemplatesDir, distTemplatesDir);
+        console.log("Templates copied successfully to dist folder");
+    } catch (err) {
+        console.error("Error copying templates:", err);
+        process.exit(1);
+    }
+}
 
-// Copy all template directories
-console.log("Copying templates to dist directory...");
-fs.copySync(templatesSrcDir, templatesDistDir);
-
-console.log("Templates copied successfully!");
+copyTemplates();
